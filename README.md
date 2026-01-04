@@ -55,7 +55,7 @@ Clone this repo:
 
 ```
 cd ~/Code
-git clone git@github.com:boxy-robot/dotfiles.git
+git clone git@github.com:erickyellott/dotfiles.git
 ```
 
 Link gitconfigs:
