@@ -21,6 +21,9 @@
 *.log
 *.sqlite
 
+# AI
+.claude/settings.local.json
+
 ### OS generated files
 .DS_Store
 .DS_Store?

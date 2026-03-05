@@ -32,12 +32,19 @@
 	br = branch
 	co = checkout
 	staged = diff --cached
+	up = fetch origin master:master
 
 	# Show files ignored by git:
 	ign = ls-files -o -i --exclude-standard
 
 [push]
 	default = simple
+
+[pull]
+    rebase = true
+
+[pager]
+    branch = false
 
 [merge]
 	tool = zed
