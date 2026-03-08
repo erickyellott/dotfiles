@@ -7,6 +7,7 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "buffer_font_weight": 400.0,
   "diff_view_style": "unified",
   "edit_predictions": {
     "provider": "zed"
@@ -39,10 +40,10 @@
     "file_icons": true
   },
   "vim_mode": true,
-  "ui_font_size": 16,
-  "buffer_font_size": 12.5,
+  "ui_font_size": 15.0,
+  "buffer_font_size": 12.0,
   "buffer_font_family": "Monaco",
-  "buffer_line_height": "comfortable",
+  "buffer_line_height": "standard",
   "show_whitespaces": "boundary"
 
   // "languages": {
