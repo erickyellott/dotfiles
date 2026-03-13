@@ -45,3 +45,5 @@ TAGS
 node_modules
 *.dat
 /data
+
+.claude/settings.local.json
