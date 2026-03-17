@@ -5,7 +5,7 @@
 
 [user]
 	name = Erick Yellott
-	email = erick.yellott@gmail.com
+	email = yellott@nuon.co
 	signingkey = ~/.ssh/id_ed25519.pub
 
 [color]
@@ -59,7 +59,3 @@
 
 [gpg]
 	format = ssh
-[pager]
-	branch = false
-[pull]
-	rebase = true

@@ -24,3 +24,17 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 export PYTHONDONTWRITEBYTECODE=1
 eval "$(atuin init zsh)"
+
+# Nuon
+export PATH="~/bin:~/go/bin:$PATH"
+export AWS_PROFILE="stage.NuonAdmin"
+export AWS_REGION="us-west-2"
+export NUON_PREVIEW=true
+export NUON_ROOT="/Users/yellott/nuonco"
+export NUONCTL_LOCAL=true
+
+nuonctl () {
+        ~/nuonco/mono/run-nuonctl.sh "$@"
+}
+
+alias nuonstage="nuon -f ~/.stage.yml"
