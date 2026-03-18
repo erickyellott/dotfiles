@@ -16,3 +16,4 @@ alias nuke="find . | grep -E \"(/__pycache__$|\.pyc$|\.pyo$|\.coverage$|coverage
 export VISUAL=vim
 export EDITOR="$VISUAL"
 export PYTHONDONTWRITEBYTECODE=1
+eval "$(atuin init zsh)"
