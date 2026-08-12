@@ -18,4 +18,19 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 export PYTHONDONTWRITEBYTECODE=1
 export HOMEBREW_CASK_OPTS="--no-quarantine"
-eval "$(atuin init zsh)"
+
+# Nuon
+export PATH="$HOME/bin:$HOME/go/bin:$PATH"
+export AWS_PROFILE="stage.NuonAdmin"
+export AWS_REGION="us-west-2"
+export NUON_PREVIEW=true
+export NUON_ROOT="/Users/yellott/nuonco"
+export NUONCTL_LOCAL=true
+export DD_SITE="us5.datadoghq.com"
+export USE_LOCAL_RUNNERS=false
+
+nuonctl () {
+        ~/nuonco/mono/run-nuonctl.sh "$@"
+}
+
+alias nuonstage="nuon -f ~/.stage.yml"

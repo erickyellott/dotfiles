@@ -63,23 +63,6 @@ ln -s "$HOME/Code/dotfiles/gitconfig" "$HOME/.gitconfig"
 ln -s "$HOME/Code/dotfiles/gitignore" "$HOME/.gitignore"
 ```
 
-Install prezto:
-
-```bash
-git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
-
-setopt EXTENDED_GLOB
-for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
-  ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
-done
-```
-
-Link zshrc:
-
-```bash
-ln -sf "$HOME/Code/dotfiles/zshrc" "$HOME/.zshrc"
-```
-
 Silence last login terminal message:
 
 ```bash
@@ -116,7 +99,7 @@ Homebrew lives in `/opt/homebrew`, which is not on the default `PATH`.
 universal variable changes. Anything worth keeping goes in `config.fish` instead
 — a global there shadows a universal of the same name.
 
-Claude Code
+Claude
 ----
 
 Link the global instructions and the Tomorrow Night Bright theme:
@@ -147,30 +130,12 @@ Tell iTerm to load your preferences from iCloud.
 
 ![iTerm](img/iterm-install.png?raw=true)
 
-Visual Studio Code
-----
-
-Install cli command by searching for "Install code" from the command palette.
-
-![vscode](img/vscode-install.png?raw=true)
-
-Login to github:
-
-![vscode](img/vscode-signin.png?raw=true)
-
 Alfred
 ----
 
 Tell alfred to load your preferences from iCloud.
 
 ![alfred](img/alfred-install.png?raw=true)
-
-Rectangle
-----
-
-Tell Rectangle to sync via iCloud.
-
-![rectangle](img/rectangle-install.png?raw=true)
 
 Disable macos screenshot thumbnails
 ----
