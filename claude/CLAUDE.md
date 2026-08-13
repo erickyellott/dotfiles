@@ -19,6 +19,23 @@
 * Never include or mention rollout or deployment sections in plans, unless we need to do a blue/green 
   or special case migration.
 
+## Safety
+
+* Always stop and confirm with me before anything destructive or hard to
+  undo, even when permission prompts are bypassed. This includes: deleting or
+  overwriting files outside a scratch dir, `rm -rf`, `git reset --hard`, force
+  pushes, branch/tag deletion, any `kubectl` write (`delete`, `apply`, `scale`,
+  `patch`, `drain`, `cordon`, `rollout restart`), `helm upgrade`/`uninstall`,
+  `terraform apply`/`destroy`, DDL or `DELETE`/`UPDATE`/`TRUNCATE`/`DROP` in
+  psql, and any cloud CLI mutation (`gcloud`, `gsutil rm`, `aws`).
+* Show me the exact command and what it will affect, then wait for a yes.
+  Bypassing permissions means I trust you to run things — not that I want
+  irreversible actions taken unattended.
+* Prefer the reversible or dry-run form first: `--dry-run=client`,
+  `terraform plan`, `SELECT` before `DELETE`, `git stash` over `git reset`.
+* Never touch production or a non-local cluster/database without me asking for
+  it explicitly in that message.
+
 ## Model delegation
 
 * When using Opus or higher, delegate appropriate work to Sonnet.

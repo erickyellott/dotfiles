@@ -1,0 +1,5 @@
+fork = true
+
+[font]
+normal = ["Monaco"]
+size = 12.0

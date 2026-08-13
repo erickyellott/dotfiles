@@ -121,6 +121,34 @@ Then pick the theme with `/config`, or set it directly in
 `settings.json` itself is not symlinked — it holds machine-specific hooks and
 plugin state.
 
+Neovim
+----
+
+`neovim`, `neovide-app`, `gopls`, and `tree-sitter-cli` are installed by
+`brew bundle`.
+
+Link the config, the lockfile, the fallback theme, and Neovide's font settings:
+
+```bash
+mkdir -p "$HOME/.config/nvim/colors" "$HOME/.config/neovide"
+ln -sf "$HOME/Code/dotfiles/nvim/init.lua" "$HOME/.config/nvim/init.lua"
+ln -sf "$HOME/Code/dotfiles/nvim/lazy-lock.json" \
+  "$HOME/.config/nvim/lazy-lock.json"
+ln -sf "$HOME/Code/dotfiles/nvim/colors/Tomorrow-Night-Bright.vim" \
+  "$HOME/.config/nvim/colors/Tomorrow-Night-Bright.vim"
+ln -sf "$HOME/Code/dotfiles/neovide/config.toml" \
+  "$HOME/.config/neovide/config.toml"
+```
+
+Plugins install on first launch. Then build the treesitter parsers:
+
+```bash
+nvim --headless -c 'lua require("nvim-treesitter").install({"go","gomod","gosum","gotmpl","lua","vim","vimdoc","query","bash","json","yaml","toml","markdown","markdown_inline","hcl","terraform","dockerfile","typescript","tsx","javascript","css","html","python","sql","diff","gitcommit"}):wait(600000)' -c 'qa'
+```
+
+Font size is set in `neovide/config.toml` and read at startup, so changing it
+needs a full quit. To tune it live, `:set guifont=Monaco:h11`.
+
 iTerm
 ----
 

@@ -1,6 +1,6 @@
 eval (/opt/homebrew/bin/brew shellenv)
 
-set -gx VISUAL vim
+set -gx VISUAL nvim
 set -gx EDITOR $VISUAL
 set -gx PYTHONDONTWRITEBYTECODE 1
 set -gx HOMEBREW_CASK_OPTS --no-quarantine
@@ -16,4 +16,6 @@ if status is-interactive
     alias python python3
     alias pip pip3
     alias gb "git branch"
+    alias nv neovide
+    alias yolo "claude --dangerously-skip-permissions"
 end
