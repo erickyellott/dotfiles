@@ -99,6 +99,39 @@ Homebrew lives in `/opt/homebrew`, which is not on the default `PATH`.
 universal variable changes. Anything worth keeping goes in `config.fish` instead
 — a global there shadows a universal of the same name.
 
+Atuin
+----
+
+Atuin replaces shell history with a searchable SQLite database. It is installed
+by `brew bundle`.
+
+Link the config and the fish integration:
+
+```bash
+mkdir -p ~/.config/atuin ~/.config/fish/conf.d
+ln -sf "$HOME/Code/dotfiles/atuin/config.toml" "$HOME/.config/atuin/config.toml"
+ln -sf "$HOME/Code/dotfiles/fish/conf.d/atuin.fish" \
+  "$HOME/.config/fish/conf.d/atuin.fish"
+```
+
+Import existing shell history once, then open a new shell:
+
+```bash
+atuin import auto
+```
+
+The init runs with `--disable-up-arrow`, so `Ctrl+R` opens atuin's search and the
+up arrow keeps fish's native prefix search. The init also binds bare `?` to
+atuin's AI search.
+
+`enter_accept = true` means `Enter` in the search UI runs the command
+immediately; `Tab` puts it on the prompt to edit instead.
+
+The history database in `~/.local/share/atuin` is not tracked — it is machine
+state, and `key` in that directory is the sync encryption key. Back that key up
+somewhere private if you ever enable sync; without it, synced history cannot be
+decrypted on another machine.
+
 Claude
 ----
 
@@ -148,6 +181,22 @@ nvim --headless -c 'lua require("nvim-treesitter").install({"go","gomod","gosum"
 
 Font size is set in `neovide/config.toml` and read at startup, so changing it
 needs a full quit. To tune it live, `:set guifont=Monaco:h11`.
+
+Ghostty
+----
+
+Ghostty reads `$XDG_CONFIG_HOME/ghostty/config` first and the macOS
+Application Support path second, so the latter wins when both exist. Link that
+one:
+
+```bash
+mkdir -p "$HOME/Library/Application Support/com.mitchellh.ghostty"
+ln -sfn "$HOME/Code/dotfiles/ghostty/config" \
+  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+```
+
+`Cmd+Shift+,` reloads the config, but some options — `macos-titlebar-style`
+among them — only apply to new windows, so a full restart is sometimes needed.
 
 iTerm
 ----

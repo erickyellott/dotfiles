@@ -17,6 +17,11 @@ vim.opt.rtp:prepend(lazypath)
 vim.o.termguicolors = true
 vim.opt.mouse = 'a'
 
+-- Every yank/delete also lands in the macOS clipboard, and p pastes from it.
+-- Neovim shells out to pbcopy/pbpaste for this, so it works in the terminal and
+-- in Neovide alike.
+vim.opt.clipboard = "unnamedplus"
+
 -- Hybrid numbering: absolute on the cursor line, relative elsewhere, so motion
 -- counts like d3j can be read straight off the gutter.
 vim.opt.number = true
@@ -243,7 +248,7 @@ vim.api.nvim_create_user_command("Reload", function()
     table.insert(cmd, file)
   end
 
-  vim.system(cmd, { cwd = vim.fn.getcwd(), detach = true })
+  vim.system(cmd, { cwd = vim.fn.getcwd(), env = { NVIM_KEEP_CWD = "1" }, detach = true })
   vim.cmd("qall")
 end, { desc = "Restart Neovide as if relaunched from the shell" })
 
@@ -252,9 +257,40 @@ end, { desc = "Restart Neovide as if relaunched from the shell" })
 if vim.g.neovide then
   vim.o.guifont = "Monaco:h12"
 
-  -- Cmd-C is the only path to the system clipboard; plain yanks stay in vim's
-  -- own registers. iTerm2 handles Cmd-C itself, so this is GUI-only.
-  vim.keymap.set("x", "<D-c>", '"+y', { desc = "Copy selection to system clipboard" })
+  -- Cmd+C/V/X/A. Only Neovide sees the Cmd key; in a terminal the emulator
+  -- swallows it, so these are pointless outside the GUI.
+  vim.keymap.set({ "n", "v" }, "<D-c>", '"+y', { desc = "Copy to system clipboard" })
+  vim.keymap.set({ "n", "v" }, "<D-x>", '"+d', { desc = "Cut to system clipboard" })
+  vim.keymap.set({ "n", "v" }, "<D-v>", '"+p', { desc = "Paste from system clipboard" })
+  vim.keymap.set("i", "<D-v>", "<C-r>+", { desc = "Paste from system clipboard" })
+  vim.keymap.set("c", "<D-v>", "<C-r>+", { desc = "Paste from system clipboard" })
+  vim.keymap.set("t", "<D-v>", [[<C-\><C-n>"+pi]], { desc = "Paste from system clipboard" })
+  vim.keymap.set("n", "<D-a>", "ggVG", { desc = "Select all" })
+
+  -- Launched from the Dock or Spotlight, Neovide inherits / or $HOME as its cwd
+  -- (it has no cwd flag). Start in the code dir instead — but not when files
+  -- were passed on the command line, and not when :Reload picked the cwd.
+  local start_dir = vim.fn.expand("~/Code")
+  local cwd = vim.fn.getcwd()
+  if
+    vim.fn.argc(-1) == 0
+    and not vim.env.NVIM_KEEP_CWD
+    and (cwd == vim.env.HOME or cwd == "/")
+    and vim.fn.isdirectory(start_dir) == 1
+  then
+    vim.cmd.cd(start_dir)
+  end
+
+  -- With no file to edit, open the tree instead of an empty buffer. VimEnter so
+  -- neo-tree's setup has run and the cd above has settled.
+  if vim.fn.argc(-1) == 0 then
+    vim.api.nvim_create_autocmd("VimEnter", {
+      once = true,
+      callback = function()
+        vim.cmd("Neotree focus")
+      end,
+    })
+  end
 
   vim.g.neovide_padding_top = 8
   vim.g.neovide_padding_bottom = 8
