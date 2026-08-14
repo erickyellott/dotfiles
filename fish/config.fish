@@ -1,5 +1,3 @@
-eval (/opt/homebrew/bin/brew shellenv)
-
 set -gx VISUAL nvim
 set -gx EDITOR $VISUAL
 set -gx PYTHONDONTWRITEBYTECODE 1
