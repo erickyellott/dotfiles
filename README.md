@@ -120,8 +120,8 @@ Import existing shell history once, then open a new shell:
 atuin import auto
 ```
 
-The init runs with `--disable-up-arrow`, so `Ctrl+R` opens atuin's search and the
-up arrow keeps fish's native prefix search. The init also binds bare `?` to
+The init runs with `--disable-up-arrow`, so `Ctrl+R` opens atuin's search and
+the up arrow keeps fish's native prefix search. The init also binds bare `?` to
 atuin's AI search.
 
 `enter_accept = true` means `Enter` in the search UI runs the command
@@ -185,15 +185,21 @@ needs a full quit. To tune it live, `:set guifont=Monaco:h11`.
 Ghostty
 ----
 
-Ghostty reads `$XDG_CONFIG_HOME/ghostty/config` first and the macOS
-Application Support path second, so the latter wins when both exist. Link that
-one:
+Link the config:
 
 ```bash
-mkdir -p "$HOME/Library/Application Support/com.mitchellh.ghostty"
-ln -sfn "$HOME/Code/dotfiles/ghostty/config" \
-  "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+mkdir -p "$HOME/.config/ghostty"
+ln -sfn "$HOME/Code/dotfiles/ghostty/config" "$HOME/.config/ghostty/config"
 ```
+
+Ghostty loads `$XDG_CONFIG_HOME/ghostty/config` (defaulting to `~/.config`) and
+then `~/Library/Application Support/com.mitchellh.ghostty/config`, **merging**
+both — the Application Support file does not replace the XDG one, it overrides
+only the keys it sets. Keep that directory empty so this config is the whole
+story; a stray file there wins silently and is easy to forget about.
+
+Ghostty writes a template config to Application Support on first launch only
+when it finds no config anywhere, so the symlink above prevents it reappearing.
 
 `Cmd+Shift+,` reloads the config, but some options — `macos-titlebar-style`
 among them — only apply to new windows, so a full restart is sometimes needed.

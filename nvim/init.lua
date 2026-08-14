@@ -17,10 +17,9 @@ vim.opt.rtp:prepend(lazypath)
 vim.o.termguicolors = true
 vim.opt.mouse = 'a'
 
--- Every yank/delete also lands in the macOS clipboard, and p pastes from it.
--- Neovim shells out to pbcopy/pbpaste for this, so it works in the terminal and
--- in Neovide alike.
-vim.opt.clipboard = "unnamedplus"
+-- Deliberately NOT unnamedplus: ordinary y/d/c/x stay in vim's own registers so
+-- a delete never clobbers what's on the macOS clipboard. Crossing the boundary
+-- is explicit — Cmd-C/Cmd-V in Neovide (mapped below), or "+y / "+p anywhere.
 
 -- Hybrid numbering: absolute on the cursor line, relative elsewhere, so motion
 -- counts like d3j can be read straight off the gutter.
@@ -257,15 +256,43 @@ end, { desc = "Restart Neovide as if relaunched from the shell" })
 if vim.g.neovide then
   vim.o.guifont = "Monaco:h12"
 
-  -- Cmd+C/V/X/A. Only Neovide sees the Cmd key; in a terminal the emulator
-  -- swallows it, so these are pointless outside the GUI.
-  vim.keymap.set({ "n", "v" }, "<D-c>", '"+y', { desc = "Copy to system clipboard" })
-  vim.keymap.set({ "n", "v" }, "<D-x>", '"+d', { desc = "Cut to system clipboard" })
-  vim.keymap.set({ "n", "v" }, "<D-v>", '"+p', { desc = "Paste from system clipboard" })
-  vim.keymap.set("i", "<D-v>", "<C-r>+", { desc = "Paste from system clipboard" })
-  vim.keymap.set("c", "<D-v>", "<C-r>+", { desc = "Paste from system clipboard" })
+  -- Cmd+C/V/X/A, the only bridge between vim's registers and the macOS
+  -- clipboard (see 'clipboard' up top). Only Neovide sees the Cmd key; iTerm2
+  -- swallows it and handles copy/paste itself, so these are GUI-only.
+  --
+  -- Two traps here, both of which make Cmd-C mangle the buffer instead of copy:
+  -- in normal mode `"+y` is a bare operator that sits waiting for a motion, so
+  -- the next keys you type get eaten as a motion and then run as raw normal-mode
+  -- commands; and mode "v" covers Select mode as well as Visual, where the rhs
+  -- is typed literally and so replaces the selection. Hence "x" plus explicit
+  -- linewise normal-mode variants.
+  vim.keymap.set("x", "<D-c>", '"+y', { desc = "Copy to system clipboard" })
+  vim.keymap.set("x", "<D-x>", '"+d', { desc = "Cut to system clipboard" })
+  vim.keymap.set("x", "<D-v>", '"+p', { desc = "Paste from system clipboard" })
+  vim.keymap.set("n", "<D-c>", '"+yy', { desc = "Copy line to system clipboard" })
+  vim.keymap.set("n", "<D-x>", '"+dd', { desc = "Cut line to system clipboard" })
+  vim.keymap.set("n", "<D-v>", '"+p', { desc = "Paste from system clipboard" })
+  vim.keymap.set("i", "<D-v>", "<C-r><C-o>+", { desc = "Paste from system clipboard" })
+  vim.keymap.set("c", "<D-v>", "<C-r><C-o>+", { desc = "Paste from system clipboard" })
   vim.keymap.set("t", "<D-v>", [[<C-\><C-n>"+pi]], { desc = "Paste from system clipboard" })
   vim.keymap.set("n", "<D-a>", "ggVG", { desc = "Select all" })
+
+  -- Cmd+S. <Cmd> runs the ex command without leaving the current mode, so this
+  -- is one mapping for every mode rather than a mode dance per case.
+  vim.keymap.set({ "n", "i", "x", "s" }, "<D-s>", "<Cmd>write<CR>", { desc = "Write buffer" })
+
+  -- Cmd+Z / Cmd+Shift+Z. Same Select-mode trap as the clipboard maps above, and
+  -- a worse one in Visual: a bare `u` there lowercases the selection instead of
+  -- undoing, so both leave the mode first. Neovide reports shifted Cmd chords
+  -- inconsistently across versions, hence both spellings of redo.
+  vim.keymap.set("n", "<D-z>", "u", { desc = "Undo" })
+  vim.keymap.set({ "x", "s" }, "<D-z>", "<Esc>u", { desc = "Undo" })
+  vim.keymap.set("i", "<D-z>", "<C-o>u", { desc = "Undo" })
+  for _, redo in ipairs({ "<D-S-z>", "<D-Z>" }) do
+    vim.keymap.set("n", redo, "<C-r>", { desc = "Redo" })
+    vim.keymap.set({ "x", "s" }, redo, "<Esc><C-r>", { desc = "Redo" })
+    vim.keymap.set("i", redo, "<C-o><C-r>", { desc = "Redo" })
+  end
 
   -- Launched from the Dock or Spotlight, Neovide inherits / or $HOME as its cwd
   -- (it has no cwd flag). Start in the code dir instead — but not when files
