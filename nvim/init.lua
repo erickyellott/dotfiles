@@ -252,6 +252,10 @@ end, { desc = "Restart Neovide as if relaunched from the shell" })
 if vim.g.neovide then
   vim.o.guifont = "Monaco:h12"
 
+  -- Cmd-C is the only path to the system clipboard; plain yanks stay in vim's
+  -- own registers. iTerm2 handles Cmd-C itself, so this is GUI-only.
+  vim.keymap.set("x", "<D-c>", '"+y', { desc = "Copy selection to system clipboard" })
+
   vim.g.neovide_padding_top = 8
   vim.g.neovide_padding_bottom = 8
   vim.g.neovide_padding_left = 8
