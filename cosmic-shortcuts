@@ -1,0 +1,69 @@
+{
+    (
+        modifiers: [
+            Super,
+        ],
+    ): Disable,
+    (
+        modifiers: [
+            Super,
+        ],
+        key: "space",
+    ): System(Launcher),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: Physical(Left),
+    ): Move(TileLeft),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: "h",
+    ): Move(TileLeft),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: Physical(Right),
+    ): Move(TileRight),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: "l",
+    ): Move(TileRight),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: Physical(Up),
+    ): Window(Maximize),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: "k",
+    ): Window(Maximize),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: Physical(Down),
+    ): Window(Minimize),
+    (
+        modifiers: [
+            Super,
+            Alt,
+        ],
+        key: "j",
+    ): Window(Minimize),
+}
