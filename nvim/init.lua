@@ -146,6 +146,82 @@ require("lazy").setup({
     end,
   },
 
+  -- A curated shortlist of files, not a history. Add the four or five you are
+  -- actually working across, then jump by slot number — the jump lands in the
+  -- focused split, so it composes with the window layout instead of fighting it.
+  -- The list is keyed by cwd, so each project keeps its own.
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    -- Loaded up front, not on first keypress, so the statusline slot indicator
+    -- below is accurate from the moment a session opens.
+    event = "VeryLazy",
+    keys = function()
+      local function slot(i)
+        return function()
+          require("harpoon"):list():select(i)
+        end
+      end
+      local keys = {
+        {
+          "<leader>a",
+          function()
+            require("harpoon"):list():add()
+          end,
+          desc = "Harpoon: add file",
+        },
+        {
+          "<leader>m",
+          function()
+            local harpoon = require("harpoon")
+            harpoon.ui:toggle_quick_menu(harpoon:list())
+          end,
+          desc = "Harpoon: menu",
+        },
+      }
+      -- Cmd-1..4 in Neovide, <leader>1..4 everywhere. The <D-*> entries are inert
+      -- in iTerm2 rather than wrong, so both front-ends can share one spec.
+      for i = 1, 4 do
+        table.insert(keys, { "<leader>" .. i, slot(i), desc = "Harpoon: slot " .. i })
+        table.insert(keys, { "<D-" .. i .. ">", slot(i), desc = "Harpoon: slot " .. i })
+      end
+      return keys
+    end,
+    config = function()
+      require("harpoon"):setup()
+    end,
+  },
+
+  -- The visual strip of open buffers. Window-wide, not per split — nvim has no
+  -- per-window tab line to hook. Cycling is already bound: nvim 0.11+ ships
+  -- [b and ]b as defaults, so only the Cmd chords are added here.
+  {
+    "akinsho/bufferline.nvim",
+    -- No nvim-web-devicons dependency: with show_buffer_icons off, bufferline
+    -- never requires it. Verified by rendering the tabline with it absent.
+    event = "VeryLazy",
+    keys = {
+      { "<D-[>", "<cmd>BufferLineCyclePrev<cr>", desc = "Previous buffer" },
+      { "<D-]>", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
+    },
+    opts = {
+      options = {
+        mode = "buffers",
+        -- Text glyphs only, matching neo-tree: Monaco has no Nerd Font coverage.
+        show_buffer_icons = false,
+        show_buffer_close_icons = false,
+        show_close_icon = false,
+        separator_style = "thin",
+        modified_icon = "●",
+        diagnostics = "nvim_lsp",
+        offsets = {
+          { filetype = "neo-tree", text = "Files", highlight = "Directory", separator = true },
+        },
+      },
+    },
+  },
+
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
@@ -196,6 +272,33 @@ require("lazy").setup({
     },
   },
 })
+
+-- Which harpoon slots are filled and which one this window is showing, without
+-- opening the menu: "H 1 [2] 3". The statusline is per-window, so each split
+-- reports its own slot. Guarded on package.loaded rather than require() so a
+-- redraw can never force-load harpoon ahead of its own event.
+function _G.harpoon_status()
+  local harpoon = package.loaded["harpoon"]
+  if not harpoon then
+    return ""
+  end
+  local items = harpoon:list().items
+  if #items == 0 then
+    return ""
+  end
+  local current = vim.api.nvim_buf_get_name(0)
+  local slots = {}
+  for i, item in ipairs(items) do
+    local active = vim.fn.fnamemodify(item.value, ":p") == current
+    slots[i] = active and ("[" .. i .. "]") or tostring(i)
+  end
+  return "H " .. table.concat(slots, " ") .. "  "
+end
+
+-- Nvim's built-in default statusline, with the harpoon segment spliced in ahead
+-- of the ruler. Setting 'statusline' at all replaces the default wholesale, so
+-- the %f/%h%m%r/%l,%c%V/%P pieces are the stock ones restated.
+vim.o.statusline = "%<%f %h%m%r%=%{v:lua.harpoon_status()}%-14.(%l,%c%V%) %P"
 
 -- On the main branch, highlighting is not a setup option — it is started per
 -- buffer. Without this, parsers install but nothing gets colored.
