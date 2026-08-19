@@ -2,6 +2,7 @@ set -gx VISUAL nvim
 set -gx EDITOR $VISUAL
 set -gx PYTHONDONTWRITEBYTECODE 1
 set -gx HOMEBREW_CASK_OPTS --no-quarantine
+set -gx ENABLE_PROMPT_CACHING_1H 1
 
 if status is-interactive
     set -g fish_greeting "NO LOAFING!"
