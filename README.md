@@ -151,6 +151,26 @@ Then pick the theme with `/config`, or set it directly in
 { "theme": "custom:tomorrow-night-bright" }
 ```
 
+Link the status line script (shows model, directory, context usage, and
+either 5h/7d rate-limit quota on a subscription or session cost on an API
+key):
+
+```bash
+ln -sf "$HOME/Code/dotfiles/claude/statusline-command.sh" \
+  "$HOME/.claude/statusline-command.sh"
+```
+
+Then point to it in `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  }
+}
+```
+
 `settings.json` itself is not symlinked — it holds machine-specific hooks and
 plugin state.
 
