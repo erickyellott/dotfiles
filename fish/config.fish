@@ -4,8 +4,12 @@ set -gx PYTHONDONTWRITEBYTECODE 1
 set -gx HOMEBREW_CASK_OPTS --no-quarantine
 set -gx ENABLE_PROMPT_CACHING_1H 1
 
+# Where install.sh links `moon`, used by the greeting in functions/.
+fish_add_path -g $HOME/.local/bin
+
 if status is-interactive
-    set -g fish_greeting ""
+    # The greeting is functions/fish_greeting.fish, which overrides fish's
+    # stock one outright, so $fish_greeting no longer needs blanking here.
 
     alias todo "zed -n ~/Library/Mobile\ Documents/com~apple~CloudDocs/TODO.md"
     alias code "cd ~/Code"

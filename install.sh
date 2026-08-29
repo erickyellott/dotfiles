@@ -211,6 +211,9 @@ link_all() {
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
 
+  # On PATH via fish_add_path in config.fish; the fish greeting shells out to it.
+  link bin/moon "$HOME/.local/bin/moon"
+
   # Shared ghostty config plus the platform half it includes as `?platform`.
   link ghostty/config "$HOME/.config/ghostty/config"
   link "ghostty/config.$OS" "$HOME/.config/ghostty/platform"
