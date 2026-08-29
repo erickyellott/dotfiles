@@ -17,7 +17,9 @@ return {
     status = {
       -- Drop the per-filetype devicon from the buffer tabs.
       components = {
-        tabline_file_info = { file_icon = false },
+        -- Stock padding is right-only, so tabs sit flush on their left edge.
+        -- right = 1 lands at 2 total, since close_button pads itself by 1.
+        tabline_file_info = { file_icon = false, padding = { left = 2, right = 1 } },
       },
       attributes = {
         buffer_active = { bold = true },
@@ -28,9 +30,19 @@ return {
     highlights = {
       init = function()
         local hls = {}
-        for _, group in ipairs { "NeoTreeTabActive", "NeoTreeTabInactive" } do
-          hls[group] = vim.tbl_extend("force", get_hlgroup(group), { bold = true })
-        end
+        -- Match how the buffer tabs next to them mark state: the active tab
+        -- drops to the editor background so it reads as attached to the pane
+        -- below, the inactive ones sit on the tabline fill.
+        hls.NeoTreeTabActive = vim.tbl_extend("force", get_hlgroup "NeoTreeTabActive", {
+          fg = get_hlgroup("Normal").fg,
+          bg = get_hlgroup("Normal").bg,
+          bold = true,
+        })
+        hls.NeoTreeTabInactive = vim.tbl_extend("force", get_hlgroup "NeoTreeTabInactive", {
+          fg = get_hlgroup("Comment").fg,
+          bg = get_hlgroup("TabLineFill").bg,
+          bold = true,
+        })
         -- base16 paints split borders in the foreground color, which reads as a
         -- bright white bar. Use the selection color so it recedes; taking it
         -- from Visual keeps it correct if the colorscheme changes.
