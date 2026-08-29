@@ -1,29 +1,30 @@
 #!/usr/bin/env bash
 # Claude Code status line
-# Shows: [model] dir-name  ctx bar  5h/7d quota bars (sub) or cost (api key)
+# Shows: dir-name [model]  ctx bar  5h/7d quota bars (sub) or cost (api key)
 
 input=$(cat)
 
 CYAN=$'\033[96m'
+YELLOW=$'\033[93m'
 RESET=$'\033[0m'
 SEP='│'
 
 # Filled segments are a colored background with dark text on top; the rest of
-# the bar is a neutral track with light text.
-FILL_GREEN=$'\033[30;42m'
-FILL_YELLOW=$'\033[30;43m'
-FILL_RED=$'\033[30;41m'
+# the bar is a neutral track with light text. Each meter's fill matches its
+# own label color.
 TRACK=$'\033[97;100m'
 
 LABEL_CTX=$'\033[94m'
+FILL_CTX=$'\033[30;104m'
 LABEL_QUOTA=$'\033[95m'
+FILL_QUOTA=$'\033[30;105m'
 
 BAR_WIDTH=8
 
 # Renders "label [  42%  ]" as a bar whose fill tracks the percentage, with the
 # number printed inside it. An empty pct renders an empty bar with no number.
 meter() {
-  local label=$1 pct=$2 label_color=$3 fill text pad content filled
+  local label=$1 pct=$2 label_color=$3 fill=$4 text pad content filled
   if [ -n "$pct" ]; then
     pct=$(printf '%.0f' "$pct")
     [ "$pct" -gt 100 ] && pct=100
@@ -32,14 +33,6 @@ meter() {
   else
     pct=0
     text=""
-  fi
-
-  if [ "$pct" -ge 80 ]; then
-    fill=$FILL_RED
-  elif [ "$pct" -ge 50 ]; then
-    fill=$FILL_YELLOW
-  else
-    fill=$FILL_GREEN
   fi
 
   # Center the number in the track, then color the leading cells as filled.
@@ -61,7 +54,7 @@ model=$(echo "$input" | jq -r '.model.display_name' |
 dir=$(basename "$(echo "$input" | jq -r '.workspace.current_dir')")
 
 used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
-ctx=$(meter "ctx" "$used_pct" "$LABEL_CTX")
+ctx=$(meter "ctx" "$used_pct" "$LABEL_CTX" "$FILL_CTX")
 
 # Subscription sessions expose rate_limits (5h/7d quota); API key sessions don't,
 # so fall back to showing accrued cost instead.
@@ -70,13 +63,13 @@ seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty
 
 if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
   extra=""
-  [ -n "$five_h" ] && extra=$(meter "5h" "$five_h" "$LABEL_QUOTA")
-  [ -n "$seven_d" ] && extra="${extra:+$extra  }$(meter "7d" "$seven_d" "$LABEL_QUOTA")"
+  [ -n "$five_h" ] && extra=$(meter "5h" "$five_h" "$LABEL_QUOTA" "$FILL_QUOTA")
+  [ -n "$seven_d" ] && extra="${extra:+$extra  }$(meter "7d" "$seven_d" "$LABEL_QUOTA" "$FILL_QUOTA")"
 else
   cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
   extra=$(printf '$%.2f' "${cost:-0}")
 fi
 
 printf '%s%s%s %s %s%s%s %s %s %s %s\n' \
-  "$CYAN" "$model" "$RESET" "$SEP" "$CYAN" "$dir" "$RESET" \
+  "$YELLOW" "$dir" "$RESET" "$SEP" "$CYAN" "$model" "$RESET" \
   "$SEP" "$ctx" "$SEP" "$extra"
