@@ -5,7 +5,7 @@ set -gx HOMEBREW_CASK_OPTS --no-quarantine
 set -gx ENABLE_PROMPT_CACHING_1H 1
 
 if status is-interactive
-    set -g fish_greeting "NO LOAFING!"
+    set -g fish_greeting ""
 
     alias todo "zed -n ~/Library/Mobile\ Documents/com~apple~CloudDocs/TODO.md"
     alias code "cd ~/Code"

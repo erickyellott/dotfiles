@@ -1,0 +1,5 @@
+# Linked to ~/.config/ghostty/platform on Pop!_OS.
+
+# Monaco is macOS-only. Blex covers both text and Nerd Font icons on its own,
+# so no fallback chain is needed here.
+font-family = BlexMono Nerd Font

@@ -1,0 +1,80 @@
+{
+  "apps" : [
+    {
+      "app" : "Messages",
+      "bundleId" : "com.apple.MobileSMS",
+      "column" : 1,
+      "hotkey" : "alt+cmd+y",
+      "row" : 1
+    },
+    {
+      "app" : "Plex",
+      "bundleId" : "tv.plex.desktop",
+      "column" : 2,
+      "hotkey" : "alt+cmd+i",
+      "row" : 1
+    },
+    {
+      "app" : "Plexamp",
+      "bundleId" : "tv.plex.plexamp",
+      "column" : 3,
+      "hotkey" : "alt+cmd+u",
+      "row" : 1
+    },
+    {
+      "app" : "Slack",
+      "bundleId" : "com.tinyspeck.slackmacgap",
+      "column" : 1,
+      "hotkey" : "alt+cmd+h",
+      "row" : 2
+    },
+    {
+      "app" : "Ghostty",
+      "bundleId" : "com.mitchellh.ghostty",
+      "column" : 2,
+      "hotkey" : "alt+cmd+j",
+      "row" : 2
+    },
+    {
+      "app" : "Neovide",
+      "bundleId" : "com.neovide.neovide",
+      "column" : 3,
+      "hotkey" : "alt+cmd+k",
+      "row" : 2
+    },
+    {
+      "app" : "Gemini",
+      "bundleId" : "com.google.GeminiMacOS",
+      "column" : 4,
+      "hotkey" : "alt+cmd+l",
+      "row" : 2
+    },
+    {
+      "app" : "Safari",
+      "bundleId" : "com.apple.Safari",
+      "column" : 5,
+      "hotkey" : "alt+cmd+;",
+      "row" : 2
+    },
+    {
+      "app" : "Mimestream",
+      "bundleId" : "com.mimestream.Mimestream",
+      "column" : 2,
+      "hotkey" : "alt+cmd+m",
+      "row" : 3
+    },
+    {
+      "app" : "Calendar",
+      "bundleId" : "com.apple.iCal",
+      "column" : 3,
+      "hotkey" : "alt+cmd+,",
+      "row" : 3
+    }
+  ],
+  "version" : 2,
+  "windows" : {
+    "left-two-thirds" : "alt+cmd+left",
+    "maximize" : "alt+cmd+up",
+    "right-one-third" : "alt+cmd+right"
+  }
+}
