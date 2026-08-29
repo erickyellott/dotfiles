@@ -32,7 +32,20 @@
 	st = status
 	br = branch
 	co = checkout
-	up = fetch origin master:master
+	up = "!f() { \
+		b=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); \
+		if [ -z \"$b\" ]; then \
+			git remote set-head origin --auto >/dev/null 2>&1; \
+			b=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); \
+		fi; \
+		b=${b#origin/}; \
+		[ -n \"$b\" ] || b=master; \
+		if [ \"$(git symbolic-ref --quiet --short HEAD 2>/dev/null)\" = \"$b\" ]; then \
+			git pull --ff-only origin \"$b\"; \
+		else \
+			git fetch origin \"$b:$b\"; \
+		fi; \
+	}; f"
 	staged = diff --cached
 	ignored = ls-files -o -i --exclude-standard
 
