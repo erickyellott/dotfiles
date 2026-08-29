@@ -1,10 +1,4 @@
 # Linked to ~/.config/ghostty/platform on macOS.
 
-# Monaco has no Nerd Font glyphs; the second family is the fallback for icons.
-# Pinned rather than left to macOS font matching.
 font-family = Monaco
-font-family = BlexMono Nerd Font
-
-# Custom titlebar with the tab bar built into it. Only applies to new windows
-# on reload, so a full restart is needed to see it change.
 macos-titlebar-style = tabs

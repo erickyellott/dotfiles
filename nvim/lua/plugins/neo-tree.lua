@@ -10,6 +10,21 @@ return {
     default_component_configs = {
       -- No per-filetype devicons; every file gets the plain default glyph.
       icon = { provider = false },
+      -- One dot, colored by state, instead of nine different glyphs. staged and
+      -- unstaged are blank: the distinction is not worth a column here.
+      git_status = {
+        symbols = {
+          added = "●",
+          modified = "●",
+          deleted = "●",
+          renamed = "●",
+          untracked = "●",
+          conflict = "●",
+          ignored = "●",
+          staged = "",
+          unstaged = "",
+        },
+      },
     },
   },
 }

@@ -38,6 +38,37 @@ return {
         for _, group in ipairs { "WinSeparator", "VertSplit" } do
           hls[group] = vim.tbl_extend("force", get_hlgroup(group), { fg = muted })
         end
+        -- base16 paints file and directory icons the same blue, so at a glance
+        -- a file reads as a folder. Give files the plain foreground instead.
+        hls.NeoTreeFileIcon =
+          vim.tbl_extend("force", get_hlgroup "NeoTreeFileIcon", { fg = get_hlgroup("Normal").fg })
+
+        -- Git state reads as green (new), yellow (changed), red (gone), in both
+        -- the tree and the sign column. The stock groups paint changed/renamed
+        -- blue and untracked orange, which does not map onto that. Colors come
+        -- from the palette so they track the colorscheme rather than being
+        -- pinned to Tomorrow Night Bright hexes.
+        local ok, base16 = pcall(require, "base16-colorscheme")
+        if ok and base16.colors then
+          local new_, changed_, gone = base16.colors.base0B, base16.colors.base0A, base16.colors.base08
+          local state = {
+            NeoTreeGitAdded = new_,
+            NeoTreeGitUntracked = new_,
+            NeoTreeGitModified = changed_,
+            NeoTreeGitRenamed = changed_,
+            NeoTreeGitDeleted = gone,
+            NeoTreeGitConflict = gone,
+            GitSignsAdd = new_,
+            GitSignsUntracked = new_,
+            GitSignsChange = changed_,
+            GitSignsChangedelete = changed_,
+            GitSignsDelete = gone,
+            GitSignsTopdelete = gone,
+          }
+          for group, fg in pairs(state) do
+            hls[group] = vim.tbl_extend("force", get_hlgroup(group), { fg = fg })
+          end
+        end
         return hls
       end,
     },
