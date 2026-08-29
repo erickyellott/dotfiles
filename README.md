@@ -62,6 +62,22 @@ mkdir -p ~/Code
 git clone git@github.com:erickyellott/dotfiles.git ~/Code/dotfiles
 ```
 
+Machine profile
+====
+
+Work and personal machines differ in two places: the git email, and the Nuon
+fish config. Which one a machine is comes from an untracked file:
+
+```bash
+mkdir -p ~/.config/dotfiles
+echo work > ~/.config/dotfiles/profile   # or: personal
+```
+
+Absent, it defaults to `personal` — which is just the committed config, since
+the personal email lives in `git/gitconfig` directly. On `work` the script links
+`git/gitconfig.work` over it and adds the `fish/work/` files; switching back to
+`personal` removes both again.
+
 Run it
 ====
 

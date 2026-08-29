@@ -65,3 +65,9 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
+# Work machines override the email above. install.sh links git/gitconfig.work
+# here when ~/.config/dotfiles/profile says `work`, and removes it otherwise.
+# Later includes win, and git ignores the include silently when absent.
+[include]
+	path = ~/.gitconfig.local

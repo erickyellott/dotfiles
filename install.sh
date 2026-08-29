@@ -14,6 +14,11 @@ set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Which machine this is. Untracked, so it never travels with the repo; absent
+# means personal.
+PROFILE_FILE="$HOME/.config/dotfiles/profile"
+PROFILE=""
+
 case "$(uname -s)" in
   Darwin)
     OS=macos
@@ -65,6 +70,47 @@ usage() {
   sed -n '3,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
+# ---------------------------------------------------------------- profile ---
+
+resolve_profile() {
+  if [[ -r "$PROFILE_FILE" ]]; then
+    PROFILE="$(tr -d '[:space:]' <"$PROFILE_FILE")"
+  fi
+
+  if [[ -z "$PROFILE" ]]; then
+    if [[ -t 0 ]]; then
+      local reply
+      while [[ -z "$PROFILE" ]]; do
+        printf 'Which machine is this? [%spersonal%s/work] ' "$BOLD" "$RESET"
+        read -r reply || reply=personal
+        # tr, not ${reply,,}: macOS ships bash 3.2.
+        reply="$(printf '%s' "${reply:-personal}" | tr '[:upper:]' '[:lower:]')"
+        case "$reply" in
+          work | personal) PROFILE="$reply" ;;
+          *) printf '  answer work or personal\n' ;;
+        esac
+      done
+      if $DRY_RUN; then
+        printf '    %swould run:%s write %s to %s\n' \
+          "$DIM" "$RESET" "$PROFILE" "$PROFILE_FILE"
+      else
+        mkdir -p "$(dirname "$PROFILE_FILE")"
+        printf '%s\n' "$PROFILE" >"$PROFILE_FILE"
+        printf '    %ssaved to %s%s\n' "$DIM" "$PROFILE_FILE" "$RESET"
+      fi
+    else
+      # Piped or run from cron: never block waiting on an answer.
+      PROFILE=personal
+      warn "no $PROFILE_FILE and no terminal to ask; assuming personal"
+    fi
+  fi
+
+  case "$PROFILE" in
+    work | personal) ;;
+    *) die "unknown profile '$PROFILE' in $PROFILE_FILE (want: work | personal)" ;;
+  esac
+}
+
 # ------------------------------------------------------------------ links ---
 
 # link <repo-relative-source> <absolute-destination>
@@ -107,10 +153,32 @@ link() {
 # unlinked on this machine.
 link_dir() {
   local subdir="$1" dest_dir="$2" path name
+  [[ -d "$DOTFILES/$subdir" ]] || return 0
   for path in "$DOTFILES/$subdir"/*; do
     [[ -f "$path" ]] || continue
     name="$(basename "$path")"
     link "$subdir/$name" "$dest_dir/$name"
+  done
+}
+
+# Remove links this repo owns that the active profile no longer wants, so
+# switching profiles cleans up after itself instead of leaving stale files.
+# Match on "points into this repo" rather than the exact path: once a file moves
+# in the repo the old link dangles and an exact match never fires.
+unlink_file() {
+  local dest="$1"
+  if [[ -L "$dest" && "$(readlink "$dest")" == "$DOTFILES"/* ]]; then
+    run rm -f "$dest"
+    changed "removed $dest (not in the $PROFILE profile)"
+  fi
+}
+
+unlink_dir() {
+  local subdir="$1" dest_dir="$2" path
+  [[ -d "$DOTFILES/$subdir" ]] || return 0
+  for path in "$DOTFILES/$subdir"/*; do
+    [[ -f "$path" ]] || continue
+    unlink_file "$dest_dir/$(basename "$path")"
   done
 }
 
@@ -119,11 +187,27 @@ link_all() {
 
   link git/gitconfig "$HOME/.gitconfig"
   link git/gitignore "$HOME/.gitignore"
-  link zsh/zshrc "$HOME/.zshrc"
+  # Personal identity lives in gitconfig itself; only work overrides it.
+  if [[ "$PROFILE" == work ]]; then
+    link git/gitconfig.work "$HOME/.gitconfig.local"
+  else
+    unlink_file "$HOME/.gitconfig.local"
+  fi
+
+  # Prune first: anything the shared or active-profile pass still wants gets
+  # re-linked immediately below, so an over-eager removal repairs itself.
+  local other
+  for other in work personal; do
+    [[ "$other" == "$PROFILE" ]] && continue
+    unlink_dir "fish/$other/conf.d" "$HOME/.config/fish/conf.d"
+    unlink_dir "fish/$other/functions" "$HOME/.config/fish/functions"
+  done
 
   link fish/config.fish "$HOME/.config/fish/config.fish"
   link_dir fish/conf.d "$HOME/.config/fish/conf.d"
   link_dir fish/functions "$HOME/.config/fish/functions"
+  link_dir "fish/$PROFILE/conf.d" "$HOME/.config/fish/conf.d"
+  link_dir "fish/$PROFILE/functions" "$HOME/.config/fish/functions"
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
 
@@ -373,6 +457,9 @@ main() {
   if $DRY_RUN; then
     printf '%sdry run — nothing will be changed%s\n' "$YELLOW" "$RESET"
   fi
+
+  resolve_profile
+  printf '%s%s / %s profile%s\n' "$DIM" "$OS" "$PROFILE" "$RESET"
 
   if $LINKS_ONLY; then
     link_all
