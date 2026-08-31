@@ -25,6 +25,14 @@ return {
         buffer_active = { bold = true },
         buffer_visible = { bold = true },
       },
+      -- Stock paints the close button on the active and visible tabs in the
+      -- error color, so an ordinary open file looks like it is in a bad state.
+      -- Use the same muted color the inactive tabs already get.
+      colors = function(colors)
+        colors.buffer_active_close_fg = colors.buffer_close_fg
+        colors.buffer_visible_close_fg = colors.buffer_close_fg
+        return colors
+      end,
     },
     -- Neo-tree's Files/Bufs/Git source selector.
     highlights = {
