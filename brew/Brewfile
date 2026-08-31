@@ -1,6 +1,10 @@
 # Shared between macOS and Pop!_OS. Casks live in Brewfile.macos, since
 # `brew bundle` on Linux fails on a cask line.
 
+tap "datadog-labs/pack"
+tap "hashicorp/tap"
+tap "nuonco/tap"
+
 brew "ag"
 brew "age"
 brew "awscli"
@@ -21,10 +25,11 @@ brew "jq"
 brew "just"
 brew "lazygit"
 brew "neovim"
+brew "nuonco/tap/nuon"
+brew "datadog-labs/pack/pup"
 brew "python"
 brew "ruff"
-brew "tailscale"
-brew "terraform"
+brew "tfenv"
 brew "tig"
 brew "tree"
 brew "tree-sitter-cli"

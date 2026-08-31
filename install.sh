@@ -249,6 +249,21 @@ link_all() {
 
 # --------------------------------------------------------------- homebrew ---
 
+# Homebrew refuses to load formulae from third-party taps until they are
+# trusted. Trust whatever the Brewfiles declare, so `brew bundle` can run
+# unattended.
+trust_taps() {
+  brew trust --help >/dev/null 2>&1 || return 0
+
+  local file tap
+  for file in "$@"; do
+    [[ -f "$file" ]] || continue
+    while read -r tap; do
+      run brew trust --tap "$tap"
+    done < <(sed -n 's/^tap "\([^"]*\)".*/\1/p' "$file")
+  done
+}
+
 install_homebrew() {
   phase "Homebrew"
 
@@ -271,6 +286,8 @@ install_homebrew() {
     warn "brew unavailable; skipped Brewfiles"
     return
   fi
+
+  trust_taps "$DOTFILES/brew/Brewfile" "$DOTFILES/brew/Brewfile.$OS"
 
   run brew bundle --file="$DOTFILES/brew/Brewfile"
 
