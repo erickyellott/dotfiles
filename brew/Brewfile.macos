@@ -3,6 +3,7 @@
 cask "alfred"
 cask "caffeine"
 cask "claude-code"
+cask "cursor-cli"
 cask "discord"
 cask "deezer"
 cask "firefox"
