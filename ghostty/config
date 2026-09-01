@@ -48,3 +48,10 @@ keybind = super+l=clear_screen
 # Only the font and window chrome actually differ per platform. The ? makes
 # this optional, so a machine with no platform file still starts.
 config-file = ?platform
+
+# Resize splits faster
+keybind = super+ctrl+left=resize_split:left,50
+keybind = super+ctrl+right=resize_split:right,50
+keybind = super+ctrl+up=resize_split:up,50
+keybind = super+ctrl+down=resize_split:down,50
+
