@@ -28,6 +28,9 @@ font-size = 12
 background = #121212
 theme = Tomorrow Night Bright
 
+# Don't dim unfocused splits; 1 = no fade.
+unfocused-split-opacity = 1
+
 cursor-style = block
 # Shell integration forces a bar cursor at the prompt, which overrides
 # cursor-style. no-cursor turns that off so block actually sticks.
