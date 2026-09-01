@@ -5,7 +5,7 @@ return {
     filesystem = {
       -- Open a directory as a sidebar rather than taking over the whole window.
       hijack_netrw_behavior = "open_default",
-      filtered_items = { hide_dotfiles = false },
+      filtered_items = { hide_dotfiles = false, hide_gitignored = false },
     },
     -- AstroNvim centers the tabs already; this just insets the bar from the
     -- window edges so the outer tabs are not flush against them. winbar is off
