@@ -24,6 +24,7 @@ if status is-interactive
     alias gb "git branch"
     alias nv "neovide --reuse-instance --new-window"
     alias yolo "claude --dangerously-skip-permissions"
+    alias ca "cursor-agent"
 end
 
 # Added by OrbStack: command-line tools and integration
