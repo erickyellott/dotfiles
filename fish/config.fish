@@ -7,6 +7,9 @@ set -gx ENABLE_PROMPT_CACHING_1H 1
 # Where install.sh links `moon`, used by the greeting in functions/.
 fish_add_path -g $HOME/.local/bin
 
+# Add cwd to path so I don't have to type ./
+set -g PATH $PATH .
+
 if status is-interactive
     # The greeting is functions/fish_greeting.fish, which overrides fish's
     # stock one outright, so $fish_greeting no longer needs blanking here.
