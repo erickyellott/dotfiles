@@ -19,7 +19,7 @@ if status is-interactive
     alias python python3
     alias pip pip3
     alias gb "git branch"
-    alias nv neovide
+    alias nv "neovide --reuse-instance --new-window"
     alias yolo "claude --dangerously-skip-permissions"
 end
 
