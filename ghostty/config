@@ -28,8 +28,10 @@ font-size = 12
 background = #121212
 theme = Tomorrow Night Bright
 
-# Don't dim unfocused splits; 1 = no fade.
+# Don't dim unfocused splits; 1 = no fade. Since nothing fades, the divider
+# is the only cue for where one split ends, so make it clearly visible.
 unfocused-split-opacity = 1
+split-divider-color = #7a7a7a
 
 cursor-style = block
 # Shell integration forces a bar cursor at the prompt, which overrides
