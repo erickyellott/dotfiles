@@ -51,6 +51,18 @@ keybind = super+l=clear_screen
 # this optional, so a machine with no platform file still starts.
 config-file = ?platform
 
+# Splits are a binary tree, so a second split halves one pane: 50/25/25.
+# equalize_splits weights panes by leaf count, so chaining it onto every split
+# lands on even thirds (and quarters, etc.) instead.
+keybind = super+d=new_split:right
+keybind = chain=equalize_splits
+keybind = super+shift+d=new_split:down
+keybind = chain=equalize_splits
+
+# Closing a split can't auto-equalize (the chained action dies with the
+# surface), so keep equalize on an easy key. Default is super+ctrl+=.
+keybind = super+r=equalize_splits
+
 # Resize splits faster
 keybind = super+ctrl+left=resize_split:left,50
 keybind = super+ctrl+right=resize_split:right,50
