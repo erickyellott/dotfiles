@@ -1,0 +1,48 @@
+# Arch/Omarchy equivalent of brew/Brewfile. Every formula the shared Brewfile
+# lists is in the official repos, so there is no Homebrew on this platform.
+#
+# One package per line; # starts a comment. Fed to `yay -S --needed`, so
+# re-running is a no-op for anything already present.
+
+# --- renamed on Arch --------------------------------------------------------
+the_silver_searcher   # brew: ag
+aws-cli-v2            # brew: awscli
+github-cli            # brew: gh
+procps-ng             # brew: watch
+
+# --- same name --------------------------------------------------------------
+age
+atuin
+bottom
+cowsay
+docker
+docker-compose
+fish
+gdu
+git
+go
+gopls
+iperf3
+ipython
+jq
+just
+lazygit
+neovim
+python
+ruff
+tig
+tree
+tree-sitter-cli
+uv
+vim
+
+# --- from Brewfile.macos, where it is a cask --------------------------------
+ghostty
+neovide
+
+# --- AUR; bound into the app grid in omarchy/hypr/bindings.lua --------------
+slack-desktop
+plexamp-bin
+
+# Not packaged for Arch, so they are not handled here:
+#   tfenv, ty, nuonco/tap/nuon, datadog-labs/pack/pup

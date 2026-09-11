@@ -3,3 +3,8 @@
 # Monaco is macOS-only. Blex covers both text and Nerd Font icons on its own,
 # so no fallback chain is needed here.
 font-family = BlexMono Nerd Font
+
+# No font-size here: Omarchy owns it. `omarchy display text size` seds the
+# line in ~/.config/ghostty/config, which is why that file is a real file
+# rather than a link into this repo. Setting a size here would override it and
+# put ghostty out of step with foot.

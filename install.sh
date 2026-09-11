@@ -8,7 +8,7 @@
 #
 #   ./install.sh              full setup
 #   ./install.sh --dry-run    print what would happen, change nothing
-#   ./install.sh --links-only symlinks only; skip brew, shell, apps
+#   ./install.sh --links-only symlinks only; skip packages, shell, apps
 
 set -euo pipefail
 
@@ -19,14 +19,26 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_FILE="$HOME/.config/dotfiles/profile"
 PROFILE=""
 
+# Two separate axes. OS names the platform half of a config file
+# ("ghostty/config.linux"), so it stays linux on every distro. PKG names who
+# installs packages, which is its own question: Arch carries every formula the
+# shared Brewfile lists, so Homebrew earns nothing there.
+IS_ARCH=false
 case "$(uname -s)" in
   Darwin)
     OS=macos
+    PKG=brew
     BREW_PREFIX=/opt/homebrew
     ;;
   Linux)
     OS=linux
+    PKG=brew
     BREW_PREFIX=/home/linuxbrew/.linuxbrew
+    # Omarchy reports ID=omarchy with ID_LIKE=arch, so match on either.
+    if [[ " $(. /etc/os-release 2>/dev/null; echo "${ID:-} ${ID_LIKE:-}") " == *" arch "* ]]; then
+      IS_ARCH=true
+      PKG=pacman
+    fi
     ;;
   *) printf 'unsupported platform: %s\n' "$(uname -s)" >&2; exit 1 ;;
 esac
@@ -182,6 +194,63 @@ unlink_dir() {
   done
 }
 
+# On Omarchy, ~/.config/ghostty/config cannot be a symlink: `omarchy display
+# text size` rewrites font-size in it with `sed -i`, which replaces the file
+# and would silently detach ghostty from this repo (it already did once). So
+# write a real file that owns nothing but the size and includes the repo's
+# config. Omarchy keeps driving the size, and ghostty stays in step with foot.
+#
+# The size line belongs to Omarchy, so an existing one is carried forward
+# rather than reset on every run.
+write_ghostty_config() {
+  local dest="$HOME/.config/ghostty/config" size=""
+
+  if [[ -f "$dest" && ! -L "$dest" ]]; then
+    size="$(sed -n 's/^font-size = \([0-9.]*\).*/\1/p' "$dest" | head -1)"
+  fi
+  # No size to carry forward (first run, or replacing the old symlink). Foot is
+  # written by the same `omarchy display text size` command in the same units,
+  # so it is the closest thing to the current system size. Omarchy's own
+  # default is 9, which is what its 12px text size maps to.
+  if [[ -z "$size" && -f "$HOME/.config/foot/foot.ini" ]]; then
+    size="$(sed -n 's/.*:size=\([0-9.]*\).*/\1/p' "$HOME/.config/foot/foot.ini" | head -1)"
+  fi
+  [[ -n "$size" ]] || size=9
+
+  local want
+  want="$(
+    printf '%s\n' \
+      "# Written by install.sh, and deliberately not a symlink: \`omarchy display" \
+      "# text size\` rewrites font-size below with sed -i, which would replace a" \
+      "# link with a plain file and quietly detach ghostty from the dotfiles." \
+      "# Omarchy owns the size; everything else lives in the repo." \
+      "font-size = $size" \
+      "" \
+      "config-file = $DOTFILES/ghostty/config" \
+      "config-file = $DOTFILES/ghostty/config.linux"
+  )"
+
+  if [[ -f "$dest" && ! -L "$dest" && "$(cat "$dest")" == "$want" ]]; then
+    ok "$dest (font-size $size, Omarchy's)"
+    return
+  fi
+
+  if $DRY_RUN; then
+    printf '    %swould run:%s write %s (font-size %s)\n' \
+      "$DIM" "$RESET" "$dest" "$size"
+    CHANGES=$((CHANGES + 1))
+    return
+  fi
+
+  if [[ -e "$dest" ]]; then
+    mv "$dest" "$dest.bak.$STAMP"
+    warn "backed up existing $dest -> $(basename "$dest").bak.$STAMP"
+  fi
+  mkdir -p "$(dirname "$dest")"
+  printf '%s\n' "$want" >"$dest"
+  changed "$dest (font-size $size, Omarchy's)"
+}
+
 link_all() {
   phase "Symlinks"
 
@@ -209,14 +278,31 @@ link_all() {
   link_dir "fish/$PROFILE/conf.d" "$HOME/.config/fish/conf.d"
   link_dir "fish/$PROFILE/functions" "$HOME/.config/fish/functions"
 
+  # Inbound SSH. Public keys only — nothing secret lives in this repo. sshd
+  # rejects an authorized_keys that is group- or world-writable, and git
+  # checks files out 644, so the symlink is fine.
+  link ssh/authorized_keys "$HOME/.ssh/authorized_keys"
+
+  # Linked but deliberately not enabled: running an agent unattended with
+  # permissions bypassed is a per-machine decision, not a default.
+  #   systemctl --user enable --now claude-remote-control
+  link systemd/claude-remote-control.service \
+    "$HOME/.config/systemd/user/claude-remote-control.service"
+
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
 
   # On PATH via fish_add_path in config.fish; the fish greeting shells out to it.
   link bin/moon "$HOME/.local/bin/moon"
 
   # Shared ghostty config plus the platform half it includes as `?platform`.
-  link ghostty/config "$HOME/.config/ghostty/config"
-  link "ghostty/config.$OS" "$HOME/.config/ghostty/platform"
+  # Arch is the exception; see write_ghostty_config.
+  if $IS_ARCH; then
+    write_ghostty_config
+    unlink_file "$HOME/.config/ghostty/platform"
+  else
+    link ghostty/config "$HOME/.config/ghostty/config"
+    link "ghostty/config.$OS" "$HOME/.config/ghostty/platform"
+  fi
   link neovide/config.toml "$HOME/.config/neovide/config.toml"
   link k9s/views.yaml "$HOME/.config/k9s/views.yaml"
   link hermes/default.json "$HOME/.config/hermes/default.json"
@@ -234,6 +320,26 @@ link_all() {
   if [[ "$OS" == linux ]]; then
     link cosmic/shortcuts \
       "$HOME/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"
+  fi
+
+  # Omarchy. Only the files that actually differ from Omarchy's stock config —
+  # tracking a stock copy just pins a default that upstream will move on from.
+  # Themes and shell plugins are deliberately absent: they are git clones (169M
+  # of them), reproduced with `omarchy theme install` / `omarchy plugin clone`.
+  if $IS_ARCH; then
+    link omarchy/xdg-terminals.list "$HOME/.config/xdg-terminals.list"
+    link omarchy/hypr/bindings.lua "$HOME/.config/hypr/bindings.lua"
+    link omarchy/hypr/monitors.lua "$HOME/.config/hypr/monitors.lua"
+    link omarchy/shell.json "$HOME/.config/omarchy/shell.json"
+    link omarchy/defaults/agent "$HOME/.config/omarchy/defaults/agent"
+    # Bound in omarchy/hypr/bindings.lua; both are hyprctl-only, so Arch.
+    link bin/app-focus "$HOME/.local/bin/app-focus"
+    link bin/cycle-app-windows "$HOME/.local/bin/cycle-app-windows"
+    link bin/workspace-cycle "$HOME/.local/bin/workspace-cycle"
+    unlink_file "$HOME/.local/bin/close-tab"
+    unlink_file "$HOME/.local/bin/app-toggle"
+  else
+    unlink_file "$HOME/.config/xdg-terminals.list"
   fi
 
   if [[ "$OS" == macos ]]; then
@@ -294,6 +400,39 @@ install_homebrew() {
   # Casks are macOS-only; `brew bundle` on Linux errors on a cask line.
   if [[ -f "$DOTFILES/brew/Brewfile.$OS" ]]; then
     run brew bundle --file="$DOTFILES/brew/Brewfile.$OS"
+  fi
+}
+
+# ----------------------------------------------------------------- pacman ---
+
+# Nothing to bootstrap the way Homebrew needs bootstrapping: Arch already has a
+# package manager. yay when it is present, since it also reaches the AUR;
+# pacman otherwise.
+install_pacman() {
+  phase "Packages"
+
+  local list="$DOTFILES/pacman/packages"
+  if [[ ! -f "$list" ]]; then
+    warn "$list missing; skipped"
+    return
+  fi
+
+  local pkgs=() pkg
+  while read -r pkg; do
+    pkgs+=("$pkg")
+  done < <(sed 's/#.*//; s/[[:space:]]//g; /^$/d' "$list")
+
+  if [[ ${#pkgs[@]} -eq 0 ]]; then
+    warn "no packages listed; skipped"
+    return
+  fi
+
+  # --needed makes this a no-op for anything already installed, which is most
+  # of the list on Omarchy.
+  if command -v yay >/dev/null 2>&1; then
+    run yay -S --needed --noconfirm "${pkgs[@]}"
+  else
+    run sudo pacman -S --needed --noconfirm "${pkgs[@]}"
   fi
 }
 
@@ -443,16 +582,71 @@ install_parsers() {
 
 # ----------------------------------------------------------------- manual ---
 
+# ------------------------------------------------------------------ claude ---
+
+# settings.json is not symlinked: it also holds machine-specific hooks and
+# plugin state that must not travel with the repo. So merge in just the two
+# keys this repo owns and leave every other key alone.
+configure_claude() {
+  phase "Claude settings"
+
+  local settings="$HOME/.claude/settings.json"
+  local theme="custom:tomorrow-night-bright"
+  local cmd="bash ~/.claude/statusline-command.sh"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    warn "jq unavailable; set theme, statusLine and remoteControlAtStartup by hand"
+    return
+  fi
+
+  if [[ -e "$settings" ]] && ! jq -e . "$settings" >/dev/null 2>&1; then
+    warn "$settings is not valid JSON; left alone"
+    return
+  fi
+
+  local current=""
+  [[ -f "$settings" ]] && current="$(cat "$settings")"
+  [[ -n "$current" ]] || current='{}'
+
+  local merged
+  # remoteControlAtStartup also spares the systemd unit from answering the
+  # "Enable Remote Control?" prompt on stdin.
+  merged="$(printf '%s' "$current" | jq --arg theme "$theme" --arg cmd "$cmd" \
+    '.theme = $theme
+     | .statusLine = { type: "command", command: $cmd }
+     | .remoteControlAtStartup = true')" || {
+    warn "could not merge $settings; left alone"
+    return
+  }
+
+  if [[ "$(printf '%s' "$current" | jq -S .)" == "$(printf '%s' "$merged" | jq -S .)" ]]; then
+    ok "claude settings already set"
+    return
+  fi
+
+  if $DRY_RUN; then
+    printf '    %swould run:%s merge theme and statusLine into %s\n' \
+      "$DIM" "$RESET" "$settings"
+    CHANGES=$((CHANGES + 1))
+    return
+  fi
+
+  # cp, not the mv the link helper uses: this file is edited in place, so the
+  # original has to stay where it is.
+  if [[ -f "$settings" ]]; then
+    cp "$settings" "$settings.bak.$STAMP"
+    warn "backed up $settings -> $(basename "$settings").bak.$STAMP"
+  fi
+  mkdir -p "$(dirname "$settings")"
+  printf '%s\n' "$merged" >"$settings"
+  changed "claude settings -> $settings"
+}
+
 print_manual() {
   phase "Still to do by hand"
   cat <<'MANUAL'
     Alfred   - Preferences > load from iCloud
     atuin    - `atuin import auto` once, then open a new shell
-    Claude   - add to ~/.claude/settings.json (not symlinked; it holds
-               machine-specific hooks and plugin state):
-                 "theme": "custom:tomorrow-night-bright"
-                 "statusLine": { "type": "command",
-                                 "command": "bash ~/.claude/statusline-command.sh" }
 MANUAL
 }
 
@@ -484,8 +678,12 @@ main() {
   if $LINKS_ONLY; then
     link_all
   else
-    # Homebrew first: everything after it depends on something brew installs.
-    install_homebrew
+    # Packages first: everything after it depends on something they install.
+    if [[ "$PKG" == pacman ]]; then
+      install_pacman
+    else
+      install_homebrew
+    fi
     link_all
     setup_shell
     if [[ "$OS" == macos ]]; then
@@ -493,6 +691,7 @@ main() {
       macos_defaults
     fi
     install_parsers
+    configure_claude
     print_manual
   fi
 

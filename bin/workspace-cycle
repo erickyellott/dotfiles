@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# Step to the next/previous workspace, wrapping within a fixed count.
+#
+# Hyprland's own relative forms don't do this: "e+1" skips empty workspaces
+# entirely, and "r+1" includes them but keeps counting past the last one into
+# workspace 5, 6, ... There is no dispatcher for "cycle within 1..N", so the
+# arithmetic lives here.
+
+set -euo pipefail
+
+COUNT=5
+
+direction=${1:?usage: workspace-cycle <next|prev>}
+
+current="$(hyprctl activeworkspace -j | jq -r '.id')"
+
+# Special workspaces report their own negative ids, and a stray id above the
+# range means something put us outside it. Either way, come back to the start.
+if [[ ! $current =~ ^[0-9]+$ ]] || ((current < 1 || current > COUNT)); then
+  target=1
+else
+  case "$direction" in
+    next) target=$((current % COUNT + 1)) ;;
+    prev) target=$(((current + COUNT - 2) % COUNT + 1)) ;;
+    *) echo "usage: workspace-cycle <next|prev>" >&2; exit 1 ;;
+  esac
+fi
+
+hyprctl dispatch "hl.dsp.focus({ workspace = \"$target\" })" >/dev/null 2>&1 ||
+  hyprctl dispatch workspace "$target" >/dev/null

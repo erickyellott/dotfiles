@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# macOS-style app hotkey: focus the app if it is running, launch it if not.
+#
+# This exists rather than calling omarchy-launch-or-focus directly for two
+# reasons. Its match is a \b...\b regex, which never matches a Chromium web app
+# (class "chrome-mail.google.com__-Default" — the trailing \b lands between "m"
+# and "_", both word characters), so every press launched another copy. And it
+# has no opinion about the scratchpad, which has its own key.
+
+set -euo pipefail
+
+pattern=${1:?usage: app-focus <window-pattern> [launch-command...]}
+shift
+launch=${*:-}
+
+# A window on the current workspace wins, so the hotkey does not yank you to
+# another workspace when the app is already in front of you. Only when it is
+# absent here does this jump to wherever it is running.
+#
+# Special workspaces are skipped entirely: the scratchpad is reached with
+# SUPER+RETURN, and an app key pulling a window out of it is never what was
+# meant.
+current="$(hyprctl activeworkspace -j | jq -r '.id')"
+
+address="$(hyprctl clients -j | jq -r --arg p "$pattern" --argjson cur "$current" '
+  ($p | ascii_downcase) as $needle
+  | [ .[]
+      | select((.workspace.name // "") | startswith("special:") | not)
+      | select(((.class // "") | ascii_downcase | contains($needle))
+            or ((.title // "") | ascii_downcase | contains($needle))) ]
+  | sort_by(if .workspace.id == $cur then 0 else 1 end)
+  | .[0].address // empty' || true)"
+
+if [[ -z $address ]]; then
+  [[ -n $launch ]] || exit 0
+  eval exec setsid "$launch"
+fi
+
+# Lua first, legacy dispatcher as fallback — the shape Omarchy's own helpers use.
+hyprctl dispatch "hl.dsp.focus({ window = \"address:$address\" })" >/dev/null 2>&1 ||
+  hyprctl dispatch focuswindow "address:$address" >/dev/null

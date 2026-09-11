@@ -1,0 +1,44 @@
+[Unit]
+Description=Claude Code Remote Control server
+Documentation=https://github.com/anthropics/claude-code/issues/30447
+After=network-online.target
+Wants=network-online.target
+
+# Keep a broken login or a changed prompt from becoming a hot restart loop.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+
+# `claude remote-control` renders a TUI and refuses to register without a
+# terminal -- with no TTY it prints the consent prompt and exits. There is no
+# headless mode yet (upstream #30447), so script(1) allocates a PTY while
+# keeping the process in the foreground for systemd to supervise. tmux would
+# also work but would hide the process behind a server systemd cannot track.
+#
+# No consent prompt to answer: remoteControlAtStartup in ~/.claude/settings.json
+# turns Remote Control on, so the server connects straight away. Without that
+# setting this needs a "y" piped in, and stdin then has to be held open or the
+# TUI reads EOF and exits the moment it connects.
+#
+# mise's "latest" symlink, not the versioned path under it: that one moves on
+# every claude update and would silently break this unit.
+ExecStart=script -qfc "%h/.local/share/mise/installs/claude/latest/claude remote-control --name gengar --permission-mode bypassPermissions" /dev/null
+
+WorkingDirectory=%h/Code
+
+# A user unit inherits almost nothing, so anything Claude shells out to has to
+# be findable from here.
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=TERM=xterm-256color
+
+# Always-on by intent; the start limit above bounds the retries.
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=claude-rc
+
+[Install]
+WantedBy=default.target

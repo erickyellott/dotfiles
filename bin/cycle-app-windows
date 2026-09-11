@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# SUPER+GRAVE, as macOS cmd+`: focus the next window belonging to the same app
+# as the focused one. Hyprland cycles all windows, not per-app, so filter by
+# class here. Windows parked on special workspaces are skipped.
+
+set -euo pipefail
+
+active="$(hyprctl activewindow -j)"
+class="$(jq -r '.class // empty' <<<"$active")"
+address="$(jq -r '.address // empty' <<<"$active")"
+
+[[ -n $class ]] || exit 0
+
+next="$(hyprctl clients -j | jq -r --arg c "$class" --arg a "$address" '
+  [ .[]
+    | select(.class == $c)
+    | select(.workspace.name | startswith("special:") | not)
+    | .address ] as $windows
+  | if ($windows | length) < 2 then empty
+    else $windows[ ((($windows | index($a)) // -1) + 1) % ($windows | length) ]
+    end')"
+
+[[ -n $next ]] || exit 0
+
+hyprctl dispatch "hl.dsp.focus({ window = \"address:$next\" })" >/dev/null 2>&1 ||
+  hyprctl dispatch focuswindow "address:$next" >/dev/null

@@ -1,0 +1,7 @@
+# Public keys allowed to SSH into any machine this repo is deployed to.
+# Mirrors config/keys.txt in the erickyellott.com repo, which the justfile
+# appends to authorized_keys on the server. Adding a machine means updating
+# both.
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILCywvRkN7/spVROFDCYDc+TeyAOPHt5WytIthbp/P39 butterfree
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKnWWM7b38oxVzf+vUxwvd/DlKOV4WrVIrkkXkX8DZ5i gengar
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJLTagzJTqJfgfyBmBynnAubiim7VTHshkq4CHm8pT7X shellder

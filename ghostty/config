@@ -24,7 +24,6 @@
 # Shared settings. Platform-specific ones live in the file included at the
 # bottom; install.sh links the right one to ~/.config/ghostty/platform.
 
-font-size = 12
 background = #121212
 theme = Tomorrow Night Bright
 
@@ -40,6 +39,11 @@ shell-integration-features = no-cursor
 
 # Close tabs/windows without the "a process is still running" prompt.
 confirm-close-surface = false
+
+# Close the focused split, not the whole tab and every split in it. Ghostty
+# closes the tab anyway once this is the last surface in it, so this is the
+# closer match to what cmd+W does on macOS.
+keybind = ctrl+shift+w=close_surface
 
 # Ghostty treats `cmd` as an alias for `super`, and a Keychron in Mac mode
 # sends the same keycode for both, so these are identical on macOS and Pop!_OS.
@@ -62,6 +66,11 @@ keybind = chain=equalize_splits
 # Closing a split can't auto-equalize (the chained action dies with the
 # surface), so keep equalize on an easy key. Default is super+ctrl+=.
 keybind = super+r=equalize_splits
+
+# Navigate splits. super+[/] are the macOS defaults; on Linux the defaults
+# are super+ctrl+[/], so bind them explicitly to keep one set of keys.
+keybind = super+[=goto_split:previous
+keybind = super+]=goto_split:next
 
 # Resize splits faster
 keybind = super+ctrl+left=resize_split:left,50

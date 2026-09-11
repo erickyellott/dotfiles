@@ -1,4 +1,5 @@
 # Linked to ~/.config/ghostty/platform on macOS.
 
+font-size = 12
 font-family = Monaco
 macos-titlebar-style = tabs
