@@ -332,10 +332,12 @@ link_all() {
     link omarchy/hypr/monitors.lua "$HOME/.config/hypr/monitors.lua"
     link omarchy/shell.json "$HOME/.config/omarchy/shell.json"
     link omarchy/defaults/agent "$HOME/.config/omarchy/defaults/agent"
-    # Bound in omarchy/hypr/bindings.lua; both are hyprctl-only, so Arch.
-    link bin/app-focus "$HOME/.local/bin/app-focus"
-    link bin/cycle-app-windows "$HOME/.local/bin/cycle-app-windows"
-    link bin/workspace-cycle "$HOME/.local/bin/workspace-cycle"
+    # Bound in omarchy/hypr/bindings.lua; all three are hyprctl-only, so they
+    # live under omarchy/ rather than bin/, which is for portable scripts.
+    # They still install to ~/.local/bin so they land on PATH.
+    link omarchy/bin/app-focus "$HOME/.local/bin/app-focus"
+    link omarchy/bin/cycle-app-windows "$HOME/.local/bin/cycle-app-windows"
+    link omarchy/bin/workspace-cycle "$HOME/.local/bin/workspace-cycle"
     unlink_file "$HOME/.local/bin/close-tab"
     unlink_file "$HOME/.local/bin/app-toggle"
   else
