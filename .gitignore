@@ -1,2 +1,5 @@
-# Agent worktrees and local agent state; never belongs in the repo.
-.claude/
+# Claude Code: local-only state. Shared config (.claude/settings.json,
+# commands/, agents/, skills/) is meant to be committed, so don't ignore
+# all of .claude/.
+.claude/settings.local.json
+.claude/worktrees/
