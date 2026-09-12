@@ -35,6 +35,10 @@
   `terraform plan`, `SELECT` before `DELETE`, `git stash` over `git reset`.
 * Never touch production or a non-local cluster/database without me asking for
   it explicitly in that message.
+* Run privileged commands as `sudo -A <cmd>`. You have no terminal, so plain
+  `sudo` cannot prompt and fails; `-A` opens a GUI password prompt instead.
+  Never run `$SUDO_ASKPASS` yourself — that would put my password in your
+  transcript. This is not a pass on the rules above: still confirm first.
 
 ## Model delegation
 

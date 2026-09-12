@@ -294,6 +294,10 @@ link_all() {
   # On PATH via fish_add_path in config.fish; the fish greeting shells out to it.
   link bin/moon "$HOME/.local/bin/moon"
 
+  # Pointed at by SUDO_ASKPASS in config.fish, so `sudo -A` can prompt for a
+  # password without a terminal.
+  link bin/askpass "$HOME/.local/bin/askpass"
+
   # Shared ghostty config plus the platform half it includes as `?platform`.
   # Arch is the exception; see write_ghostty_config.
   if $IS_ARCH; then

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Password prompt for sudo -A. Agents and other callers without a controlling
+# terminal cannot answer sudo's normal prompt, so sudo runs this instead and
+# reads the password from our stdout. Never run this directly from an agent:
+# the password would land in its transcript.
+
+if [[ $(uname) == Darwin ]]; then
+  osascript \
+    -e 'display dialog "sudo password:" default answer "" with hidden answer' \
+    -e 'text returned of result' 2>/dev/null
+else
+  exec zenity --password --title=sudo --timeout=60 2>/dev/null
+fi

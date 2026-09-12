@@ -4,6 +4,11 @@ set -gx PYTHONDONTWRITEBYTECODE 1
 set -gx HOMEBREW_CASK_OPTS --no-quarantine
 set -gx ENABLE_PROMPT_CACHING_1H 1
 
+# Lets `sudo -A` prompt from anything without a terminal, agents included.
+# Inherited from whichever shell launched the process, so a program started
+# from a Hyprland bind rather than a terminal will not see it.
+set -gx SUDO_ASKPASS $HOME/.local/bin/askpass
+
 # Where install.sh links `moon`, used by the greeting in functions/.
 fish_add_path -g $HOME/.local/bin
 
