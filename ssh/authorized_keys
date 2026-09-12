@@ -1,7 +1,16 @@
-# Public keys allowed to SSH into any machine this repo is deployed to.
-# Mirrors config/keys.txt in the erickyellott.com repo, which the justfile
-# appends to authorized_keys on the server. Adding a machine means updating
-# both.
+# Public keys allowed to SSH into any of my personal machines. Symlinked to
+# ~/.ssh/authorized_keys by install.sh, so this list is what lets the three
+# machines reach each other.
+#
+# Deliberately NOT the same list as config/keys.txt in the kanto and
+# erickyellott.com repos. That list is for sysadmin: it is the set of age
+# recipients for .env and Terraform state, and erickyellott.com's `just setup`
+# appends it to the server's authorized_keys. shellder is a work machine, so it
+# gets machine-to-machine SSH here but no server access and no ability to
+# decrypt secrets.
+#
+# Adding a personal machine means adding it here. Only add it to keys.txt as
+# well if it should also administer servers and read secrets.
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILCywvRkN7/spVROFDCYDc+TeyAOPHt5WytIthbp/P39 butterfree
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKnWWM7b38oxVzf+vUxwvd/DlKOV4WrVIrkkXkX8DZ5i gengar
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJLTagzJTqJfgfyBmBynnAubiim7VTHshkq4CHm8pT7X shellder
