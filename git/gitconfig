@@ -79,8 +79,7 @@
 	process = git-lfs filter-process
 	required = true
 
-# Work machines override the email above. install.sh links git/gitconfig.work
-# here when ~/.config/dotfiles/profile says `work`, and removes it otherwise.
-# Later includes win, and git ignores the include silently when absent.
+# install.sh links git/gitconfig.work here when the profile is `work`, which
+# overrides the email above (later includes win). Absent, git ignores it.
 [include]
 	path = ~/.gitconfig.local

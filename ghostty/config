@@ -27,44 +27,36 @@
 background = #121212
 theme = Tomorrow Night Bright
 
-# Don't dim unfocused splits; 1 = no fade. Since nothing fades, the divider
-# is the only cue for where one split ends, so make it clearly visible.
+# Don't dim unfocused splits (1 = no fade); the divider color below is the
+# only remaining cue for where a split ends.
 unfocused-split-opacity = 1
 split-divider-color = #7a7a7a
 
 cursor-style = block
-# Shell integration forces a bar cursor at the prompt, which overrides
-# cursor-style. no-cursor turns that off so block actually sticks.
+# no-cursor, or shell integration overrides cursor-style.
 shell-integration-features = no-cursor
 
 # Close tabs/windows without the "a process is still running" prompt.
 confirm-close-surface = false
 
-# Close the focused split, not the whole tab and every split in it. Ghostty
-# closes the tab anyway once this is the last surface in it, so this is the
-# closer match to what cmd+W does on macOS.
+# cmd+W closes the focused split, not the whole tab.
 keybind = ctrl+shift+w=close_surface
 
-# Ghostty treats `cmd` as an alias for `super`, and a Keychron in Mac mode
-# sends the same keycode for both, so these are identical on macOS and Pop!_OS.
-# iTerm2 muscle memory: cmd+r is Reset there, not Clear Buffer.
+# `cmd` = `super`, so these work on macOS and Linux.
 keybind = super+shift+r=reload_config
 keybind = super+l=clear_screen
 
-# Only the font and window chrome actually differ per platform. The ? makes
-# this optional, so a machine with no platform file still starts.
+# The ? makes this optional, so a machine with no platform file still starts.
 config-file = ?platform
 
-# Splits are a binary tree, so a second split halves one pane: 50/25/25.
-# equalize_splits weights panes by leaf count, so chaining it onto every split
-# lands on even thirds (and quarters, etc.) instead.
+# Equalize after every split so panes stay even.
 keybind = super+d=new_split:right
 keybind = chain=equalize_splits
 keybind = super+shift+d=new_split:down
 keybind = chain=equalize_splits
 
 # Closing a split can't auto-equalize (the chained action dies with the
-# surface), so keep equalize on an easy key. Default is super+ctrl+=.
+# surface), so keep it on an easy key. Default is super+ctrl+=.
 keybind = super+r=equalize_splits
 
 # Navigate splits. super+[/] are the macOS defaults; on Linux the defaults

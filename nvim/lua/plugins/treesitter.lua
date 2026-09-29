@@ -1,6 +1,5 @@
--- Treesitter is configured through AstroCore; nvim-treesitter itself is only
--- the parser download utility. install.sh reads this list to build the parsers
--- ahead of time, so it is the single source of truth for them.
+-- Configured via AstroCore; nvim-treesitter is just the parser downloader.
+-- install.sh reads this list, so it's the source of truth for parsers.
 
 ---@type LazySpec
 return {

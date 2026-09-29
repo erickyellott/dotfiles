@@ -1,7 +1,6 @@
 fork = true
 
 [font]
-# Monaco has no Nerd Font glyphs, so icons fall back to Blex. Pinned here
-# rather than left to macOS font matching, which picks unpredictably.
+# Monaco has no Nerd Font glyphs; BlexMono Nerd Font supplies icons.
 normal = ["Monaco", "BlexMono Nerd Font"]
 size = 12.0

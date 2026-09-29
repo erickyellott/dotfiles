@@ -2,11 +2,7 @@
 #
 # macOS-style app hotkey: focus the app if it is running, launch it if not.
 #
-# This exists rather than calling omarchy-launch-or-focus directly for two
-# reasons. Its match is a \b...\b regex, which never matches a Chromium web app
-# (class "chrome-mail.google.com__-Default" — the trailing \b lands between "m"
-# and "_", both word characters), so every press launched another copy. And it
-# has no opinion about the scratchpad, which has its own key.
+# Used instead of omarchy-launch-or-focus, which can't match Chromium web apps.
 
 set -euo pipefail
 
@@ -14,13 +10,10 @@ pattern=${1:?usage: app-focus <window-pattern> [launch-command...]}
 shift
 launch=${*:-}
 
-# A window on the current workspace wins, so the hotkey does not yank you to
-# another workspace when the app is already in front of you. Only when it is
-# absent here does this jump to wherever it is running.
+# Prefers a window on the current workspace.
 #
-# Special workspaces are skipped entirely: the scratchpad is reached with
-# SUPER+RETURN, and an app key pulling a window out of it is never what was
-# meant.
+# Special workspaces (e.g. the scratchpad, reached via SUPER+RETURN) are
+# skipped entirely.
 current="$(hyprctl activeworkspace -j | jq -r '.id')"
 
 address="$(hyprctl clients -j | jq -r --arg p "$pattern" --argjson cur "$current" '

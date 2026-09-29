@@ -1,24 +1,18 @@
 -- Dashboard header: a braille moon showing tonight's real lunar phase.
 --
 -- ALBEDO below is the near side of the Moon baked to a 128x128 albedo map,
--- 16 levels, one character per cell, space = off the disc. Source is the LRO
--- WAC nearside mosaic (NASA/GSFC/Arizona State University, public domain).
--- Because it is an albedo map rather than a photograph of one phase, the
--- terminator can be applied at runtime for any phase.
+-- 16 levels, one character per cell, space = off the disc (LRO WAC nearside
+-- mosaic, NASA/GSFC/ASU, public domain).
 --
 -- Rendering is 2x4 subpixels per cell, Floyd-Steinberg dithered to 1 bit, then
--- packed into U+2800 braille. Dark maria simply fall to no dots, which on a
--- dark terminal is exactly right.
+-- packed into U+2800 braille.
 
 local uv = vim.uv or vim.loop
 
 local EARTHSHINE = 0.10 -- the unlit limb, lit by light bounced off Earth
 
--- Cell height : width. This is the one number that has to match your font,
--- and the one thing Neovim cannot ask the terminal for -- get it wrong and
--- the moon comes out egg-shaped. Monaco falling back to BlexMono Nerd Font at
--- 12pt measures ~2.3; the Nerd Font drives a taller cell than Monaco alone.
--- Set `vim.g.moon_aspect` and reopen the dashboard to tune it.
+-- Cell height:width ratio. Must match your font or the moon comes out
+-- egg-shaped. Set `vim.g.moon_aspect` and reopen the dashboard to tune it.
 local function aspect() return vim.g.moon_aspect or 2.3 end
 
 local ALBEDO = {
@@ -158,7 +152,7 @@ for i = 0, 15 do
   LEVEL[("0123456789abcdef"):sub(i + 1, i + 1)] = i / 15
 end
 
--- U+2800 + mask, encoded directly rather than via nr2char.
+-- U+2800 braille block, offset by dot mask.
 local BRAILLE = {}
 for m = 0, 255 do
   BRAILLE[m] = string.char(0xE2, 0xA0 + math.floor(m / 64), 0x80 + m % 64)
@@ -192,8 +186,7 @@ local function draw(cols, phase)
         local row = ALBEDO[gy + 1]
         local t = row and LEVEL[row:sub(gx + 1, gx + 1)]
         if t then
-          -- ^0.30 rather than Lambert: regolith scatters almost flat, which is
-          -- why the real moon reads as a disc and not a shaded ball.
+          -- ^0.30 lighting, not Lambert, so it reads as a disc, not a shaded ball.
           local dot = u * lx + math.sqrt(1 - d2) * lz
           val = dot > 0 and t * dot ^ 0.30 or t * EARTHSHINE
         end
@@ -202,8 +195,7 @@ local function draw(cols, phase)
     end
   end
 
-  -- Floyd-Steinberg: diffuse the quantisation error forward, which is what
-  -- turns a 1-bit dot grid back into apparent shades of gray.
+  -- Floyd-Steinberg dithering.
   for y = 0, H - 1 do
     local base = y * W
     for x = 0, W - 1 do
@@ -276,8 +268,7 @@ end
 -- the caption and the startup line.
 local CHROME = 22
 
--- Shrink relative to the space available, so the moon has some air around it
--- rather than filling every row the chrome leaves free.
+-- Shrink factor so the moon doesn't fill every row the chrome leaves free.
 local SCALE = 0.90
 
 local function moon_cols()
@@ -377,8 +368,7 @@ local function start()
 
   local target = age_to_phase(moon_age())
   local total = SPIN_CYCLES * 360 + target
-  -- ease-out cubic, solved so the spin's last full cycle lands at SPIN_AT and
-  -- the remainder coasts to a stop.
+  -- ease-out cubic, timed so the spin's last full cycle lands at SPIN_AT.
   local dur = math.min(5.5, math.max(2.5,
     SPIN_AT / (1 - (1 - SPIN_CYCLES * 360 / total) ^ (1 / 3))))
 
@@ -388,9 +378,7 @@ local function start()
     if not M.timer then return end
     M.elapsed = M.elapsed + FRAME / 1000
 
-    -- Color rides the same easing curve as the spin: a full trip through the
-    -- palette while the moon is turning, decelerating in step with it, then
-    -- handing off to the slow ambient drift once it settles.
+    -- Color eases in step with the spin, then drifts ambiently once it settles.
     local u = math.min(1, M.elapsed / dur)
     local eased = 1 - (1 - u) ^ 3
     local coast = math.max(0, M.elapsed - dur) * 1000 / PERIOD

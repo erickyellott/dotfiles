@@ -1,6 +1,5 @@
-# Terminal preference order for xdg-terminal-exec, which is what every Omarchy
-# launcher goes through: `omarchy agent`, the Super+Return binding, the menu's
-# package installers, the TUI .desktop files, and $TERMINAL itself.
+# Terminal preference order for xdg-terminal-exec, used by every Omarchy
+# launcher (Super+Return, menu installers, $TERMINAL, etc).
 # First entry that resolves to an installed .desktop file wins.
 com.mitchellh.ghostty.desktop
 foot.desktop

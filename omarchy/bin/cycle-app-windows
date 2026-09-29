@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# SUPER+GRAVE, as macOS cmd+`: focus the next window belonging to the same app
-# as the focused one. Hyprland cycles all windows, not per-app, so filter by
-# class here. Windows parked on special workspaces are skipped.
+# SUPER+GRAVE, as macOS cmd+`: focus the next window of the same app as the
+# focused one (Hyprland only cycles all windows, not per-app). Windows on
+# special workspaces are skipped.
 
 set -euo pipefail
 

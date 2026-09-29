@@ -1,9 +1,8 @@
 function fish_right_prompt
 	set -l cmd_status $status
 
-	# Set by _transient_execute (conf.d/transient-prompt.fish) for the repaint
-	# that happens just before a command runs, so this prompt only ever survives
-	# on the line being typed on, not in the backlog.
+	# Set by _transient_execute (conf.d/transient-prompt.fish); this prompt only
+	# survives on the line being typed on, not in the backlog.
 	if set -q _fish_transient
 		set -e _fish_transient
 		set_color --reset

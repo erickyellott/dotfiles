@@ -1,21 +1,17 @@
-# The moon at tonight's real phase, drawn in braille. Replaces fish's stock
-# greeting, which config.fish used to blank out with an empty $fish_greeting.
+# The moon at tonight's real phase, drawn in braille.
 #
 #   set -U moon_greeting 0    turn it off
 #   set -U moon_aspect 2.4    cell height : width, if the moon looks oblong
 #   set -U moon_color d54e53  any hex, or a fish color name
 #
-# Rendering costs ~100ms, which is too much to pay on every prompt, so the
-# result is cached per day and per size and the greeting itself is just a cat.
+# Rendering costs ~100ms, so the result is cached per day and per size.
 function fish_greeting --description "The moon at its current phase"
     set -q moon_greeting; and test "$moon_greeting" = 0; and return
 
     set -l aspect 2.35
     set -q moon_aspect; and set aspect $moon_aspect
 
-    # Width, padding and colour all live in `moon` itself, so a bare `moon`
-    # and this greeting render identically. Only the aspect is passed through,
-    # since that is the one thing worth tuning per machine.
+    # Width, padding and colour all live in `moon` itself; only aspect is passed through.
     set -l dir $HOME/.cache/moon
     set -l cache $dir/(date +%F)-$aspect.txt
 

@@ -5,8 +5,8 @@ end
 ---@type LazySpec
 return {
   "AstroNvim/astrocore",
-  -- Function opts, not a table: direct assignment replaces AstroNvim's
-  -- <Leader>w entry, where a deep merge would keep its "<Cmd>w<CR>" rhs.
+  -- Function opts (not table): direct assignment overrides AstroNvim's
+  -- <Leader>w; a table would deep-merge and keep its old "<Cmd>w<CR>" rhs.
   ---@param opts AstroCoreOpts
   opts = function(_, opts)
     local maps = assert(opts.mappings)
@@ -14,8 +14,7 @@ return {
     -- Replaces "Save"; <C-S> already force-writes in normal and visual mode.
     maps.n["<Leader>w"] = { desc = "󱂬 Windows" }
 
-    -- Navigation. smart-splits rather than raw <C-w>h, to match the
-    -- existing <C-h/j/k/l> maps AstroNvim sets in smart-splits.lua:13-16.
+    -- Navigation: smart-splits matches AstroNvim's <C-h/j/k/l> maps.
     maps.n["<Leader>wh"] = { move "left", desc = "Move to left split" }
     maps.n["<Leader>wj"] = { move "down", desc = "Move to lower split" }
     maps.n["<Leader>wk"] = { move "up", desc = "Move to upper split" }
@@ -28,17 +27,14 @@ return {
     maps.n["<Leader>wc"] = { "<C-w>c", desc = "Close split" }
     maps.n["<Leader>ww"] = { "<C-w>=", desc = "Equalize split sizes" }
 
-    -- iTerm2/Ghostty muscle memory: Cmd+D splits right, Cmd+Shift+D splits
-    -- down. Neovide only, since terminals swallow Cmd. Neovide reports shifted
-    -- Cmd chords inconsistently across versions, hence both spellings.
+    -- Cmd+D/Cmd+Shift+D split (Neovide only; terminals swallow Cmd). Both
+    -- shift spellings needed -- Neovide reports them inconsistently by version.
     maps.n["<D-d>"] = { "<C-w>v", desc = "Split vertically" }
     for _, key in ipairs { "<D-S-d>", "<D-D>" } do
       maps.n[key] = { "<C-w>s", desc = "Split horizontally" }
     end
 
-    -- Cmd+[ / Cmd+] cycle splits, Cmd+Shift+[ / ] cycle buffers -- the same
-    -- division Ghostty and Chrome use. Note this inverts the old config, where
-    -- Cmd+[ / Cmd+] cycled buffers.
+    -- Cmd+[/] cycle splits, Cmd+Shift+[/] cycle buffers (matches Ghostty/Chrome).
     maps.n["<D-[>"] = { "<C-w>W", desc = "Previous split" }
     maps.n["<D-]>"] = { "<C-w>w", desc = "Next split" }
     for _, key in ipairs { "<D-S-[>", "<D-{>" } do
@@ -50,9 +46,8 @@ return {
 
     maps.n["<D-t>"] = { "<Cmd>enew<CR>", desc = "New file" }
 
-    -- Ghostty's Cmd+W: close the split, or the buffer when it is the last one.
-    -- Only listed buffers count, so the neo-tree sidebar is not mistaken for a
-    -- split worth closing.
+    -- Cmd+W: close split, or buffer if it's the last one. Only listed buffers
+    -- count (excludes the neo-tree sidebar).
     maps.n["<D-w>"] = {
       function()
         local wins = vim.tbl_filter(function(w)
@@ -68,16 +63,10 @@ return {
       desc = "Close split or buffer",
     }
 
-    -- macOS Cmd chords. These must be mapped even if unused: an unmapped <D-x>
-    -- falls through to the bare letter, so Cmd+C ran `c` (change) and ate the
-    -- selection, Cmd+S ran `s`, Cmd+A ran `a`. All destructive.
+    -- Keep these mapped: an unmapped <D-x> runs the bare letter (Cmd+C -> `c`).
     --
-    -- Two traps, both of which make Cmd+C mangle the buffer instead of copying:
-    -- in normal mode `"+y` is a bare operator left waiting for a motion, so the
-    -- following keys are consumed as one and then run as normal-mode commands;
-    -- and mode "v" covers Select as well as Visual, where the rhs is typed
-    -- literally and replaces the selection. Hence "x" plus linewise normal-mode
-    -- variants, and why the undo maps leave the mode before acting.
+    -- Mode "v" covers Select as well as Visual, where the rhs is typed
+    -- literally and replaces the selection -- hence explicit per-mode maps.
     maps.x["<D-c>"] = { '"+y', desc = "Copy to system clipboard" }
     maps.x["<D-x>"] = { '"+d', desc = "Cut to system clipboard" }
     maps.x["<D-v>"] = { '"+p', desc = "Paste from system clipboard" }
@@ -89,8 +78,7 @@ return {
     maps.t["<D-v>"] = { [[<C-\><C-n>"+pi]], desc = "Paste from system clipboard" }
     maps.n["<D-a>"] = { "ggVG", desc = "Select all" }
 
-    -- <Cmd> runs the ex command without leaving the current mode, so one
-    -- mapping covers every mode rather than a mode dance per case.
+    -- <Cmd> runs without leaving the current mode, so one map covers every mode.
     for _, mode in ipairs { "n", "i", "x", "s" } do
       maps[mode]["<D-s>"] = { "<Cmd>write<CR>", desc = "Write buffer" }
     end
@@ -108,11 +96,8 @@ return {
       maps.i[redo] = { "<C-o><C-r>", desc = "Redo" }
     end
 
-    -- macOS text navigation: Cmd for line/document, Alt for words. Shift
-    -- selects, unshifted only moves -- including out of an existing selection.
-    -- In visual mode a plain motion already extends, so the Shift variants just
-    -- need to *start* a selection from normal and insert. Insert uses <C-o>v
-    -- rather than <Esc>v, which would shift the anchor a column left.
+    -- macOS text navigation: Cmd for line/document, Alt for words. Insert mode
+    -- uses <C-o>v, not <Esc>v, which would shift the anchor a column left.
     local motions = {
       { "<D-Left>", "0", "<C-o>0", "start of line" },
       { "<D-Right>", "$", "<End>", "end of line" },
@@ -124,8 +109,8 @@ return {
     for _, m in ipairs(motions) do
       local key, motion, insert, what = m[1], m[2], m[3], m[4]
       maps.n[key] = { motion, desc = "Move to " .. what }
-      -- Unshifted in visual collapses the selection and moves, as macOS does.
-      -- A bare motion here would extend it instead.
+      -- <Esc> first, or a bare motion here would extend the selection instead
+      -- of collapsing it, as macOS does.
       maps.x[key] = { "<Esc>" .. motion, desc = "Move to " .. what }
       maps.i[key] = { insert, desc = "Move to " .. what }
 

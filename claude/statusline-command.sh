@@ -9,9 +9,7 @@ YELLOW=$'\033[93m'
 RESET=$'\033[0m'
 SEP='│'
 
-# Filled segments are a colored background with dark text on top; the rest of
-# the bar is a neutral track with light text. Each meter's fill matches its
-# own label color.
+# Filled segments are a colored background with dark text; the unfilled track is neutral gray with light text.
 TRACK=$'\033[97;100m'
 
 LABEL_CTX=$'\033[94m'
@@ -21,8 +19,7 @@ FILL_QUOTA=$'\033[30;105m'
 
 BAR_WIDTH=8
 
-# Renders "label [  42%  ]" as a bar whose fill tracks the percentage, with the
-# number printed inside it. An empty pct renders an empty bar with no number.
+# Renders "label [  42%  ]" as a bar whose fill tracks the percentage. An empty pct renders an empty bar with no number.
 meter() {
   local label=$1 pct=$2 label_color=$3 fill=$4 text pad content filled
   if [ -n "$pct" ]; then

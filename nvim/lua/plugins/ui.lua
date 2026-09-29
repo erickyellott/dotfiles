@@ -6,8 +6,8 @@ return {
   ---@type AstroUIOpts
   opts = {
     colorscheme = "tomorrow-night-bright",
-    -- Filled folders and a blank page, matching mini.icons' own defaults.
-    -- AstroNvim's stock glyphs are the smaller Seti outline variants.
+    -- Matches mini.icons' defaults (AstroNvim stock glyphs are smaller Seti
+    -- outlines).
     icons = {
       FolderClosed = "󰉋",
       FolderOpen = "󰝰",
@@ -17,17 +17,14 @@ return {
     status = {
       -- Drop the per-filetype devicon from the buffer tabs.
       components = {
-        -- Stock padding is right-only, so tabs sit flush on their left edge.
-        -- right = 1 lands at 2 total, since close_button pads itself by 1.
+        -- right=1 lands at 2 total (close_button pads itself by 1).
         tabline_file_info = { file_icon = false, padding = { left = 2, right = 1 } },
       },
       attributes = {
         buffer_active = { bold = true },
         buffer_visible = { bold = true },
       },
-      -- Stock paints the close button on the active and visible tabs in the
-      -- error color, so an ordinary open file looks like it is in a bad state.
-      -- Use the same muted color the inactive tabs already get.
+      -- Muted close buttons (stock uses the error color).
       colors = function(colors)
         colors.buffer_active_close_fg = colors.buffer_close_fg
         colors.buffer_visible_close_fg = colors.buffer_close_fg
@@ -38,9 +35,8 @@ return {
     highlights = {
       init = function()
         local hls = {}
-        -- Match how the buffer tabs next to them mark state: the active tab
-        -- drops to the editor background so it reads as attached to the pane
-        -- below, the inactive ones sit on the tabline fill.
+        -- Active tab drops to the editor bg (reads as attached to the pane
+        -- below); inactive sits on the tabline fill.
         hls.NeoTreeTabActive = vim.tbl_extend("force", get_hlgroup "NeoTreeTabActive", {
           fg = get_hlgroup("Normal").fg,
           bg = get_hlgroup("Normal").bg,
@@ -51,23 +47,16 @@ return {
           bg = get_hlgroup("TabLineFill").bg,
           bold = true,
         })
-        -- base16 paints split borders in the foreground color, which reads as a
-        -- bright white bar. Use the selection color so it recedes; taking it
-        -- from Visual keeps it correct if the colorscheme changes.
+        -- Dim split borders.
         local muted = get_hlgroup("Visual").bg
         for _, group in ipairs { "WinSeparator", "VertSplit" } do
           hls[group] = vim.tbl_extend("force", get_hlgroup(group), { fg = muted })
         end
-        -- base16 paints file and directory icons the same blue, so at a glance
-        -- a file reads as a folder. Give files the plain foreground instead.
+        -- File icons in plain fg (dirs stay blue).
         hls.NeoTreeFileIcon =
           vim.tbl_extend("force", get_hlgroup "NeoTreeFileIcon", { fg = get_hlgroup("Normal").fg })
 
-        -- Git state reads as green (new), yellow (changed), red (gone), in both
-        -- the tree and the sign column. The stock groups paint changed/renamed
-        -- blue and untracked orange, which does not map onto that. Colors come
-        -- from the palette so they track the colorscheme rather than being
-        -- pinned to Tomorrow Night Bright hexes.
+        -- Git state: green new, yellow changed, red gone.
         local ok, base16 = pcall(require, "base16-colorscheme")
         if ok and base16.colors then
           local new_, changed_, gone = base16.colors.base0B, base16.colors.base0A, base16.colors.base08

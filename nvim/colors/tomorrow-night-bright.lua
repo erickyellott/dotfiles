@@ -1,9 +1,7 @@
--- Tomorrow Night Bright, rendered through base16-nvim so it covers treesitter,
--- LSP and plugin highlight groups that the original vimscript theme never had.
--- Palette taken verbatim from nvim-old/colors/Tomorrow-Night-Bright.vim, which
--- is the same theme Ghostty is set to.
+-- Tomorrow Night Bright, via base16-nvim (covers treesitter/LSP/plugin
+-- highlight groups the original vimscript theme lacked). Matches Ghostty.
 require("base16-colorscheme").setup {
-  base00 = "#121212", -- background (softened from #000000)
+  base00 = "#121212", -- background
   base01 = "#2a2a2a", -- current line
   base02 = "#424242", -- selection
   base03 = "#969896", -- comment

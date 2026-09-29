@@ -28,24 +28,18 @@
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
 
--- SUPER+SHIFT+TAB was Omarchy's "Previous workspace"; that job belongs to
--- SUPER+ALT+LEFT now, so the key is left free. Window overview moved to
--- SUPER+ALT+TAB, bound further down -- it has to come after the group unbinds,
--- which would otherwise strip it right back off.
 hl.unbind("SUPER + SHIFT + TAB")
 
--- Let SUPER+SHIFT+D reach Ghostty (split down). Was: Docker TUI.
+-- Frees this for Ghostty's split-down binding.
 hl.unbind("SUPER + SHIFT + D")
 
 -- ---------------------------------------------------------------- macOS ---
 --
--- Omarchy's own line is that Super replaces Cmd, and it already ships
--- SUPER+C/X/V as universal clipboard keys. These extend that to the rest of
--- the app shortcuts, using the same mechanism as
--- /usr/share/omarchy/default/hypr/bindings/clipboard.lua.
+-- macOS-style app shortcuts, layered onto Omarchy's Super-as-Cmd convention
+-- (same mechanism as /usr/share/omarchy/default/hypr/bindings/clipboard.lua).
 
--- send_shortcut can leave synthetic key state stuck or repeating, so split the
--- press into down/up around a timer. See hyprwm/Hyprland#14099.
+-- Splits the press into down/up around a timer: sending the shortcut
+-- directly can leave key state stuck or repeating.
 local function send_chord(mods, key)
   return function()
     hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "down" }))
@@ -56,9 +50,8 @@ local function send_chord(mods, key)
   end
 end
 
--- Omarchy tags terminals in default/hypr/apps/terminals.lua, so lean on that
--- rather than keeping a second list of window classes here. Dynamic tags carry
--- a trailing "*".
+-- Uses Omarchy's terminal tag from default/hypr/apps/terminals.lua. Dynamic
+-- tags carry a trailing "*".
 local function active_window_is_terminal()
   local window = hl.get_active_window()
   if not window then
@@ -74,8 +67,8 @@ local function active_window_is_terminal()
   return false
 end
 
--- Terminals put tab and window shortcuts behind an extra Shift, because the
--- unshifted chords are readline editing keys: CTRL+W is backward-kill-word.
+-- Extra Shift in terminals: unshifted chords are readline editing keys
+-- (CTRL+W is backward-kill-word).
 local function app_chord(key)
   return function()
     if active_window_is_terminal() then
@@ -86,36 +79,26 @@ local function app_chord(key)
   end
 end
 
--- cmd+W closes the tab, cmd+Q the window. Omarchy binds SUPER+W to close the
--- whole window, hence the unbind.
+-- cmd+W closes tab, cmd+Q closes window.
 hl.unbind("SUPER + W")
 o.bind("SUPER + Q", "Close window", hl.dsp.window.close())
 o.bind("SUPER + W", "Close tab", app_chord("W"))
 
--- cmd+T and cmd+N. SUPER+T was floating/tiling, which moves to SUPER+SHIFT+T.
--- CTRL+T is not an option for it: SUPER+T *sends* CTRL+T, so the compositor
--- would intercept its own synthetic keystroke.
+-- cmd+T/cmd+N. Don't bind CTRL+T: SUPER+T sends it. Float toggle is SUPER+SHIFT+T.
 hl.unbind("SUPER + T")
 o.bind("SUPER + T", "New tab", app_chord("T"))
 o.bind("SUPER + N", "New window", app_chord("N"))
 o.bind("SUPER + SHIFT + T", "Toggle window floating/tiling", hl.dsp.window.float({ action = "toggle" }))
 
--- cmd+L focuses the address bar. Plain CTRL+L, not the terminal-shifted
--- variant app_chord uses: CTRL+L in a shell clears the screen, which is the
--- right thing for that key anyway. The layout toggle moves to SUPER+SHIFT+L --
--- CTRL+L is not available for it, since SUPER+L *sends* CTRL+L and the
--- compositor would catch its own synthetic keystroke.
+-- cmd+L focuses the address bar. Layout toggle is SUPER+SHIFT+L.
 hl.unbind("SUPER + L")
 o.bind("SUPER + L", "Focus address bar", send_chord("CTRL", "L"))
 o.bind("SUPER + SHIFT + L", "Toggle workspace layout", "omarchy-hyprland-workspace-layout-toggle")
 
--- cmd+` cycles windows of the focused app. ALT+TAB already cycles all windows,
--- which is close enough to cmd+TAB, so that one is left alone.
+-- cmd+` cycles windows of the focused app.
 o.bind("SUPER + GRAVE", "Cycle windows of this app", "$HOME/.local/bin/cycle-app-windows")
 
--- Window groups (tabbed containers) are unused here, so the whole family goes.
--- That frees four arrows, SUPER+G, and SUPER+ALT+1..5, which otherwise reads
--- confusingly next to SUPER+1..5 for workspaces.
+-- Window groups (tabbed containers) are unused here; unbinding frees these keys.
 for _, bind in ipairs({
   "SUPER + G",
   "SUPER + ALT + G",
@@ -140,35 +123,28 @@ end
 -- Window overview (exposé), on the key the group bindings just vacated.
 o.bind("SUPER + ALT + TAB", "Window overview", "omarchy-shell shell toggle community.window-overview '{}'")
 
--- cmd+TAB: cycle windows on the current workspace. SUPER+TAB was a second way
--- to reach the next workspace, which SUPER+ALT+RIGHT already does -- and it
--- kept firing when the macOS reflex wanted app switching. ALT+TAB still works.
+-- cmd+TAB: cycle windows on the current workspace.
 hl.unbind("SUPER + TAB")
 hl.unbind("SUPER + CTRL + TAB")
--- ALT+TAB did the same job, and carried a second stacked binding that raised
--- the window as well. SUPER+TAB is the one the muscle memory reaches for.
 hl.unbind("ALT + TAB")
 hl.unbind("ALT + SHIFT + TAB")
 o.bind("SUPER + TAB", "Switch window", hl.dsp.window.cycle_next())
--- Second stacked binding, as Omarchy had on ALT+TAB: cycling alone changes
--- focus without raising, so a floating window can stay buried under another.
+-- Second binding: cycling alone changes focus without raising, so a floating
+-- window can stay buried under another.
 o.bind("SUPER + TAB", "Reveal active window on top", hl.dsp.window.bring_to_top())
 
--- Duplicate of the app grid, or apps not used here. Omarchy drops an app's
--- hotkey when the app is uninstalled, so these only need unbinding while the
--- package is still around.
+-- Frees hotkeys duplicated by the app grid, or unused apps.
 hl.unbind("SUPER + SHIFT + B")
 hl.unbind("SUPER + SHIFT + A")
 hl.unbind("SUPER + SHIFT + G")
 hl.unbind("SUPER + SHIFT + O")
 hl.unbind("SUPER + SHIFT + W")
--- Neither built-in relative form works here: "e" skips empty workspaces, and
--- "r" includes them but counts past the last one into 5, 6, ... See the script.
+-- Wrapping cycle; see omarchy/bin/workspace-cycle.
 o.bind("SUPER + ALT + LEFT", "Previous workspace", "$HOME/.local/bin/workspace-cycle prev")
 o.bind("SUPER + ALT + RIGHT", "Next workspace", "$HOME/.local/bin/workspace-cycle next")
 
--- Five workspaces, not ten -- five is what the bar widget shows, and its count
--- is hardcoded in the plugin. Omarchy binds 1-10 as code:10 through code:19.
+-- Five workspaces, not ten: the bar widget's count is hardcoded to five.
+-- Omarchy binds 1-10 as code:10 through code:19.
 for workspace = 6, 10 do
   local key = "code:" .. tostring(workspace + 9)
   hl.unbind("SUPER + " .. key)
@@ -177,27 +153,20 @@ for workspace = 6, 10 do
 end
 o.bind("SUPER + ALT + UP", "Toggle fullscreen", "omarchy-hyprland-window-tiled-fullscreen-toggle")
 
--- The scratchpad is a Quake-style drop-down over the current workspace, and
--- it is where the long-lived terminal session lives. SUPER+RETURN was the
--- terminal launcher and SUPER+SHIFT+RETURN the browser; both are now reachable
--- from the app grid below, so the Return pair is better spent here.
--- Omarchy's own SUPER+S / SUPER+ALT+S pair is dropped: one way in is enough.
+-- Scratchpad: a Quake-style drop-down over the current workspace.
 hl.unbind("SUPER + RETURN")
 hl.unbind("SUPER + SHIFT + RETURN")
 hl.unbind("SUPER + S")
 hl.unbind("SUPER + ALT + S")
 
--- Tmux is unused here; this launched a terminal attached to a session Omarchy
--- hardcodes as "Work".
 hl.unbind("SUPER + ALT + RETURN")
 o.bind("SUPER + RETURN", "Toggle scratchpad", hl.dsp.workspace.toggle_special("scratchpad"))
 o.bind("SUPER + SHIFT + RETURN", "Move window to scratchpad", hl.dsp.window.move({ workspace = "special:scratchpad", follow = false }))
 
 -- ------------------------------------------------------------ app grid ---
 --
--- The Hermes layout from macOS, same letters so the muscle memory carries,
--- pointed at whatever fills that role here. Focus if running, launch if not.
--- Scratchpad windows are skipped: that has its own key.
+-- Hermes layout from macOS (same letters). Focuses the app if running,
+-- launches it if not. Scratchpad windows are skipped (has its own key).
 
 hl.unbind("SUPER + ALT + K")
 hl.unbind("SUPER + ALT + COMMA")

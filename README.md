@@ -53,10 +53,9 @@ ssh-keygen -t ed25519 -C "erick.yellott@gmail.com"
 ssh-add
 ```
 
-`AddKeysToAgent` and `IdentityFile` no longer go in by hand: they live in
-`ssh/config`, which `install.sh` symlinks over `~/.ssh/config` (backing up
-anything already there). Cloning below works without it, since ssh tries
-`~/.ssh/id_ed25519` by default anyway.
+`install.sh` symlinks `ssh/config` over `~/.ssh/config` (backing up anything
+already there), which sets `AddKeysToAgent` and `IdentityFile`. Cloning below
+works without it, since ssh tries `~/.ssh/id_ed25519` by default anyway.
 
 Clone the repo:
 
@@ -76,10 +75,10 @@ mkdir -p ~/.config/dotfiles
 echo work > ~/.config/dotfiles/profile   # or: personal
 ```
 
-Absent, it defaults to `personal` — which is just the committed config, since
-the personal email lives in `git/gitconfig` directly. On `work` the script links
-`git/gitconfig.work` over it and adds the `fish/work/` files; switching back to
-`personal` removes both again.
+Absent, it defaults to `personal` (the committed config; the personal email
+lives in `git/gitconfig` directly). On `work` the script links
+`git/gitconfig.work` over it and adds the `fish/work/` files; switching back
+to `personal` removes both again.
 
 Run it
 ====
@@ -114,11 +113,10 @@ Still to do by hand
   ```
 
 - **Claude Code Remote Control** — lets the phone app start *new* sessions on
-  a machine. `remoteControlAtStartup` alone only exposes sessions a terminal is
-  already running; starting fresh ones needs a `claude remote-control` host
-  process alive full time. `install.sh` links the service but never loads it —
-  an always-on agent running with `--permission-mode bypassPermissions` is a
-  per-machine call, not a default. Turn it on with:
+  a machine; needs a `claude remote-control` host process alive full time.
+  `install.sh` links the service but never loads it, since an always-on agent
+  with `--permission-mode bypassPermissions` is a per-machine call. Turn it on
+  with:
 
   ```bash
   # linux
@@ -129,12 +127,10 @@ Still to do by hand
     ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
   ```
 
-  Homebrew is no help here: `claude-code` is a cask, casks cannot declare a
-  `service` block, and `brew services` only reads formulae — hence the plist.
-  On a laptop the Mac dropping off when it sleeps is expected; `caffeine` (in
-  `brew/Brewfile.macos`) is the lever for that. Logs are `journalctl --user -u
-  claude-remote-control` on Linux and `~/Library/Logs/claude-remote-control.log`
-  on macOS.
+  On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from
+  dropping off when it sleeps. Logs are `journalctl --user -u
+  claude-remote-control` on Linux and
+  `~/Library/Logs/claude-remote-control.log` on macOS.
 
 - **Claude Code** — add to `~/.claude/settings.json`, which is not symlinked
   because it holds machine-specific hooks and plugin state:

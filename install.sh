@@ -2,9 +2,7 @@
 #
 # Idempotent setup for this dotfiles repo.
 #
-# Safe to re-run at any time: anything already correct is left untouched, and
-# anything real that is in the way is backed up before being replaced. Bash
-# rather than fish, because it has to run before fish is installed.
+# Safe to re-run; anything in the way is backed up before being replaced.
 #
 #   ./install.sh              full setup
 #   ./install.sh --dry-run    print what would happen, change nothing
@@ -19,10 +17,7 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_FILE="$HOME/.config/dotfiles/profile"
 PROFILE=""
 
-# Two separate axes. OS names the platform half of a config file
-# ("ghostty/config.linux"), so it stays linux on every distro. PKG names who
-# installs packages, which is its own question: Arch carries every formula the
-# shared Brewfile lists, so Homebrew earns nothing there.
+# OS: config-file suffix (ghostty/config.linux). PKG: pacman on Arch, else brew.
 IS_ARCH=false
 case "$(uname -s)" in
   Darwin)
@@ -126,10 +121,6 @@ resolve_profile() {
 # ------------------------------------------------------------------ links ---
 
 # link <repo-relative-source> <absolute-destination>
-#
-# `ln -sfn`, not `ln -sf`: ~/.config/nvim is a symlink to a *directory*, and
-# without -n the second run would create the link inside it (~/.config/nvim/nvim)
-# rather than replacing it.
 link() {
   local src="$DOTFILES/$1" dest="$2" target
 
@@ -142,9 +133,7 @@ link() {
       return
     fi
     if [[ "$target" == "$DOTFILES"/* || ! -e "$dest" ]]; then
-      # Already ours, just pointing at an old path — or dangling because the
-      # repo moved a file. Replace it rather than leaving .bak litter behind
-      # every time the repo is reorganized.
+      # Already ours (old path) or dangling; replace without a backup.
       run rm -f "$dest"
     else
       run mv "$dest" "$dest.bak.$STAMP"
@@ -160,9 +149,7 @@ link() {
   changed "$dest"
 }
 
-# Link every file in a repo directory, so adding one to the repo deploys it on
-# the next run. Naming files individually is what let three of them silently go
-# unlinked on this machine.
+# Link every file in a repo directory, so adding one deploys it automatically.
 link_dir() {
   local subdir="$1" dest_dir="$2" path name
   [[ -d "$DOTFILES/$subdir" ]] || return 0
@@ -173,10 +160,7 @@ link_dir() {
   done
 }
 
-# Remove links this repo owns that the active profile no longer wants, so
-# switching profiles cleans up after itself instead of leaving stale files.
-# Match on "points into this repo" rather than the exact path: once a file moves
-# in the repo the old link dangles and an exact match never fires.
+# Remove links into this repo that the active profile no longer wants.
 unlink_file() {
   local dest="$1"
   if [[ -L "$dest" && "$(readlink "$dest")" == "$DOTFILES"/* ]]; then
@@ -194,24 +178,15 @@ unlink_dir() {
   done
 }
 
-# On Omarchy, ~/.config/ghostty/config cannot be a symlink: `omarchy display
-# text size` rewrites font-size in it with `sed -i`, which replaces the file
-# and would silently detach ghostty from this repo (it already did once). So
-# write a real file that owns nothing but the size and includes the repo's
-# config. Omarchy keeps driving the size, and ghostty stays in step with foot.
-#
-# The size line belongs to Omarchy, so an existing one is carried forward
-# rather than reset on every run.
+# On Omarchy this must be a real file, not a symlink (Omarchy sed -i's the
+# font-size). It keeps the existing size and includes the repo config.
 write_ghostty_config() {
   local dest="$HOME/.config/ghostty/config" size=""
 
   if [[ -f "$dest" && ! -L "$dest" ]]; then
     size="$(sed -n 's/^font-size = \([0-9.]*\).*/\1/p' "$dest" | head -1)"
   fi
-  # No size to carry forward (first run, or replacing the old symlink). Foot is
-  # written by the same `omarchy display text size` command in the same units,
-  # so it is the closest thing to the current system size. Omarchy's own
-  # default is 9, which is what its 12px text size maps to.
+  # No existing size: use foot's.
   if [[ -z "$size" && -f "$HOME/.config/foot/foot.ini" ]]; then
     size="$(sed -n 's/.*:size=\([0-9.]*\).*/\1/p' "$HOME/.config/foot/foot.ini" | head -1)"
   fi
@@ -263,8 +238,7 @@ link_all() {
     unlink_file "$HOME/.gitconfig.local"
   fi
 
-  # Prune first: anything the shared or active-profile pass still wants gets
-  # re-linked immediately below, so an over-eager removal repairs itself.
+  # Prune first; anything still wanted gets re-linked immediately below.
   local other
   for other in work personal; do
     [[ "$other" == "$PROFILE" ]] && continue
@@ -278,24 +252,16 @@ link_all() {
   link_dir "fish/$PROFILE/conf.d" "$HOME/.config/fish/conf.d"
   link_dir "fish/$PROFILE/functions" "$HOME/.config/fish/functions"
 
-  # Inbound SSH. Public keys only — nothing secret lives in this repo. sshd
-  # rejects an authorized_keys that is group- or world-writable, and git
-  # checks files out 644, so the symlink is fine.
+  # Inbound SSH: public keys only, nothing secret in this repo.
   link ssh/authorized_keys "$HOME/.ssh/authorized_keys"
 
-  # The outbound half. Short usernames differ per machine, so reaching one from
-  # another needs this as well as the key list above.
+  # Outbound SSH: usernames differ per machine.
   link ssh/config "$HOME/.ssh/config"
 
-  # Linked but deliberately not loaded: running an agent unattended with
-  # permissions bypassed is a per-machine decision, not a default.
+  # Linked, not started. Enable per machine with:
   #   linux  systemctl --user enable --now claude-remote-control
   #   macos  launchctl bootstrap gui/$UID \
   #            ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
-  #
-  # Only ever the half this platform can run. Linking both would leave a file
-  # no service manager will ever read, and the macOS side used to get the
-  # systemd unit for exactly that reason.
   if [[ "$OS" == macos ]]; then
     link launchd/com.erickyellott.claude-remote-control.plist \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
@@ -309,11 +275,9 @@ link_all() {
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
 
-  # On PATH via fish_add_path in config.fish; the fish greeting shells out to it.
   link bin/moon "$HOME/.local/bin/moon"
 
-  # Pointed at by SUDO_ASKPASS in config.fish, so `sudo -A` can prompt for a
-  # password without a terminal.
+  # GUI password prompt for `sudo -A` (SUDO_ASKPASS in config.fish).
   link bin/askpass "$HOME/.local/bin/askpass"
 
   # Shared ghostty config plus the platform half it includes as `?platform`.
@@ -344,19 +308,17 @@ link_all() {
       "$HOME/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"
   fi
 
-  # Omarchy. Only the files that actually differ from Omarchy's stock config —
-  # tracking a stock copy just pins a default that upstream will move on from.
-  # Themes and shell plugins are deliberately absent: they are git clones (169M
-  # of them), reproduced with `omarchy theme install` / `omarchy plugin clone`.
+  # Omarchy: only files that differ from Omarchy's stock config. Themes and
+  # shell plugins are absent; reproduce with `omarchy theme install` /
+  # `omarchy plugin clone`.
   if $IS_ARCH; then
     link omarchy/xdg-terminals.list "$HOME/.config/xdg-terminals.list"
     link omarchy/hypr/bindings.lua "$HOME/.config/hypr/bindings.lua"
     link omarchy/hypr/monitors.lua "$HOME/.config/hypr/monitors.lua"
     link omarchy/shell.json "$HOME/.config/omarchy/shell.json"
     link omarchy/defaults/agent "$HOME/.config/omarchy/defaults/agent"
-    # Bound in omarchy/hypr/bindings.lua; all three are hyprctl-only, so they
-    # live under omarchy/ rather than bin/, which is for portable scripts.
-    # They still install to ~/.local/bin so they land on PATH.
+    # hyprctl-only scripts bound in omarchy/hypr/bindings.lua; installed to
+    # ~/.local/bin so they land on PATH.
     link omarchy/bin/app-focus "$HOME/.local/bin/app-focus"
     link omarchy/bin/cycle-app-windows "$HOME/.local/bin/cycle-app-windows"
     link omarchy/bin/workspace-cycle "$HOME/.local/bin/workspace-cycle"
@@ -379,9 +341,7 @@ link_all() {
 
 # --------------------------------------------------------------- homebrew ---
 
-# Homebrew refuses to load formulae from third-party taps until they are
-# trusted. Trust whatever the Brewfiles declare, so `brew bundle` can run
-# unattended.
+# Trust the Brewfiles' third-party taps so `brew bundle` runs unattended.
 trust_taps() {
   brew trust --help >/dev/null 2>&1 || return 0
 
@@ -429,9 +389,7 @@ install_homebrew() {
 
 # ----------------------------------------------------------------- pacman ---
 
-# Nothing to bootstrap the way Homebrew needs bootstrapping: Arch already has a
-# package manager. yay when it is present, since it also reaches the AUR;
-# pacman otherwise.
+# yay when present, since it also reaches the AUR; pacman otherwise.
 install_pacman() {
   phase "Packages"
 
@@ -451,8 +409,6 @@ install_pacman() {
     return
   fi
 
-  # --needed makes this a no-op for anything already installed, which is most
-  # of the list on Omarchy.
   if command -v yay >/dev/null 2>&1; then
     run yay -S --needed --noconfirm "${pkgs[@]}"
   else
@@ -482,8 +438,7 @@ setup_shell() {
     changed "added $fish to /etc/shells"
   fi
 
-  # Not $SHELL: that is whatever is running, not the configured login shell, so
-  # it reports stale after a chsh until the next login.
+  # Not $SHELL: it's stale after chsh until next login.
   local current
   if [[ "$OS" == macos ]]; then
     current="$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')"
@@ -595,8 +550,7 @@ install_parsers() {
     return
   fi
 
-  # The list lives in nvim/lua/plugins/treesitter.lua; read it back rather than
-  # duplicating it here. Blocks until every parser is built.
+  # Parser list comes from nvim/lua/plugins/treesitter.lua.
   ok "building (several minutes on a cold cache)"
   nvim --headless \
     -c "lua require('nvim-treesitter').install(require('astrocore').config.treesitter.ensure_installed):wait(900000)" \

@@ -1,5 +1,5 @@
--- How long a normal scroll animates. Referenced twice below, so the autocmd
--- restores the same value the option sets.
+-- How long a normal scroll animates; referenced below so the autocmd restores
+-- the same value.
 local SCROLL_LENGTH = 0.3
 
 ---@type LazySpec
@@ -21,8 +21,7 @@ return {
         -- Both Option keys act as Meta so <M-Left>/<M-Right> reach nvim. This
         -- gives up composing special characters (é, ü) via Option.
         neovide_input_macos_option_key_is_meta = "both",
-        -- Inset the text from the window edge so the first column and top line
-        -- are not flush against the border.
+        -- Inset the text from the window edge.
         neovide_padding_top = 8,
         neovide_padding_bottom = 8,
         neovide_padding_left = 8,
@@ -36,10 +35,9 @@ return {
           desc = "Snap rather than scroll when a buffer is first shown",
           callback = function()
             if not vim.g.neovide then return end
-            -- Neovide animates any grid scroll, including the redraw when a new
-            -- buffer appears. far_lines only suppresses jumps over a screen
-            -- long, so a short file still slides. Zero the length across the
-            -- redraw and restore it, leaving ordinary scrolling animated.
+            -- far_lines only suppresses jumps over a screen long, so a short
+            -- file still slides on buffer switch. Zero the animation across the
+            -- redraw and restore it after.
             vim.g.neovide_scroll_animation_length = 0
             vim.defer_fn(function()
               vim.g.neovide_scroll_animation_length = SCROLL_LENGTH

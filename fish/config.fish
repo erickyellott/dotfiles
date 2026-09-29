@@ -5,8 +5,7 @@ set -gx HOMEBREW_CASK_OPTS --no-quarantine
 set -gx ENABLE_PROMPT_CACHING_1H 1
 
 # Lets `sudo -A` prompt from anything without a terminal, agents included.
-# Inherited from whichever shell launched the process, so a program started
-# from a Hyprland bind rather than a terminal will not see it.
+# Only inherited by processes launched from this shell, not e.g. a Hyprland bind.
 set -gx SUDO_ASKPASS $HOME/.local/bin/askpass
 
 # Where install.sh links `moon`, used by the greeting in functions/.
@@ -16,8 +15,8 @@ fish_add_path -g $HOME/.local/bin
 set -g PATH $PATH .
 
 if status is-interactive
-    # The greeting is functions/fish_greeting.fish, which overrides fish's
-    # stock one outright, so $fish_greeting no longer needs blanking here.
+    # Greeting is defined in functions/fish_greeting.fish, which overrides
+    # fish's stock greeting outright.
 
     alias todo "zed -n ~/Library/Mobile\ Documents/com~apple~CloudDocs/TODO.md"
     alias code "cd ~/Code"

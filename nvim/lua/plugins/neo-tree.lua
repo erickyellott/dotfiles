@@ -7,27 +7,20 @@ return {
       hijack_netrw_behavior = "open_default",
       filtered_items = { hide_dotfiles = false, hide_gitignored = false },
     },
-    -- AstroNvim centers the tabs already; this just insets the bar from the
-    -- window edges so the outer tabs are not flush against them. winbar is off
-    -- because heirline.lua draws the selector in the tabline instead.
+    -- Insets the selector bar from the window edges. winbar is off; heirline.lua
+    -- draws the selector in the tabline instead.
     source_selector = {
       winbar = false,
       padding = { left = 1, right = 1 },
-      -- No dividers. Only the inactive one carries a background, and the outer
-      -- tabs have a separator on one side only, so the number of tinted columns
-      -- changed as the active tab moved and the bar looked like it was shifting.
-      -- Equal-width tabs plus a background on the active one says the same thing
-      -- and holds still.
+      -- No dividers (they make the bar shift as the active tab moves).
       separator = { left = "", right = "" },
     },
     default_component_configs = {
-      -- AstroNvim sets this to 0, which puts the root folder icon hard against
-      -- the left edge. One column of gutter reads a lot better.
+      -- One column of indent gutter (AstroNvim default is 0, flush left).
       indent = { padding = 1 },
       -- No per-filetype devicons; every file gets the plain default glyph.
       icon = { provider = false },
-      -- One dot, colored by state, instead of nine different glyphs. staged and
-      -- unstaged are blank: the distinction is not worth a column here.
+      -- One dot, colored by state; staged/unstaged left blank.
       git_status = {
         symbols = {
           added = "●",

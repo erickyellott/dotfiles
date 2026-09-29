@@ -1,18 +1,7 @@
 #!/usr/bin/env python3
 """Print the current phase of the Moon as braille.
 
-The near side baked to a 128x128 albedo map, 16 levels, one character per
-cell, space = off the disc. Source is the LRO WAC nearside mosaic
-(NASA/GSFC/Arizona State University, public domain). Because it is an albedo
-map rather than a photograph of one phase, the terminator is applied at
-render time for whatever phase the date calls for.
-
-Rendering is 2x4 subpixels per cell, Floyd-Steinberg dithered to 1 bit, then
-packed into U+2800 braille. Dark maria simply fall to no dots, which on a dark
-terminal is exactly right.
-
-The same map is baked into nvim/lua/plugins/dashboard.lua; both come from the
-LRO mosaic and neither will ever need to change.
+The same map is baked into nvim/lua/plugins/dashboard.lua.
 """
 
 import argparse
@@ -22,14 +11,7 @@ import time
 
 EARTHSHINE = 0.06  # the unlit limb, lit by light bounced off Earth
 
-# Defaults are the look the fish greeting wants, so a bare `moon` and the
-# greeting agree. ASPECT is cell height : width -- the one number that has to
-# match your font, and the one thing a program cannot ask the terminal for.
-# Monaco at 12pt in Ghostty measures ~2.35; too low and the moon is egg-shaped.
-#
-# PAD centres the disc in an 80-column block. VPAD is set independently rather
-# than derived from PAD/ASPECT: one row is worth over two columns, so deriving
-# it gave steps too coarse to place the prompt where you want it.
+# ASPECT = font cell height:width. Wrong value -> egg-shaped moon.
 BLOCK, COLS, ASPECT = 80, 58, 2.35
 PAD, VPAD = (BLOCK - COLS) // 2, 2
 COLOR = "7aa6da"
@@ -213,13 +195,11 @@ def draw(cols, phase, aspect):
             if ch == " ":
                 continue
             t = int(ch, 16) / 15.0
-            # ^0.30 rather than Lambert: regolith scatters almost flat, which
-            # is why the real moon reads as a disc and not a shaded ball.
+            # ^0.30 rather than Lambert: regolith scatters almost flat.
             dot = u * lx + math.sqrt(1 - d2) * lz
             buf[base + x] = t * dot ** 0.30 if dot > 0 else t * EARTHSHINE
 
-    # Floyd-Steinberg: diffusing the quantisation error forward is what turns
-    # a 1-bit dot grid back into apparent shades of gray.
+    # Floyd-Steinberg dithering.
     for y in range(H):
         base = y * W
         for x in range(W):
