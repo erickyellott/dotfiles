@@ -283,11 +283,29 @@ link_all() {
   # checks files out 644, so the symlink is fine.
   link ssh/authorized_keys "$HOME/.ssh/authorized_keys"
 
-  # Linked but deliberately not enabled: running an agent unattended with
+  # The outbound half. Short usernames differ per machine, so reaching one from
+  # another needs this as well as the key list above.
+  link ssh/config "$HOME/.ssh/config"
+
+  # Linked but deliberately not loaded: running an agent unattended with
   # permissions bypassed is a per-machine decision, not a default.
-  #   systemctl --user enable --now claude-remote-control
-  link systemd/claude-remote-control.service \
-    "$HOME/.config/systemd/user/claude-remote-control.service"
+  #   linux  systemctl --user enable --now claude-remote-control
+  #   macos  launchctl bootstrap gui/$UID \
+  #            ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
+  #
+  # Only ever the half this platform can run. Linking both would leave a file
+  # no service manager will ever read, and the macOS side used to get the
+  # systemd unit for exactly that reason.
+  if [[ "$OS" == macos ]]; then
+    link launchd/com.erickyellott.claude-remote-control.plist \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
+    unlink_file "$HOME/.config/systemd/user/claude-remote-control.service"
+  else
+    link systemd/claude-remote-control.service \
+      "$HOME/.config/systemd/user/claude-remote-control.service"
+    unlink_file \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
+  fi
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
 

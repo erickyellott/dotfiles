@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Claude Code Remote Control server — the macOS half of
+  systemd/claude-remote-control.service. Keeping a `claude remote-control`
+  host alive is what lets the phone app start *new* sessions on this machine;
+  remoteControlAtStartup in ~/.claude/settings.json only exposes sessions that
+  a terminal is already running.
+
+  Not loaded by install.sh, for the same reason the systemd unit is not
+  enabled: an always-on agent running with permissions bypassed is a
+  per-machine decision. To turn it on:
+
+    launchctl bootstrap gui/$UID \
+      ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
+
+  and to turn it off again:
+
+    launchctl bootout gui/$UID/com.erickyellott.claude-remote-control
+
+  Homebrew installs claude-code as a *cask*, so there is no `brew services`
+  to lean on here — a cask cannot declare a service block, and `brew services`
+  only ever reads formulae. This file is that missing piece.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.erickyellott.claude-remote-control</string>
+
+  <!--
+    Everything runs through `sh -c` rather than being spelled out as bare
+    ProgramArguments, because launchd expands nothing: no ~, no $HOME, no
+    command substitution. A shell is the only way to reach $HOME (which
+    launchd does set for user agents) and to derive the server name from the
+    hostname, which keeps this file identical on every Mac.
+
+    script(1) is here for the same reason as in the systemd unit: `claude
+    remote-control` draws a TUI and exits immediately when it has no
+    controlling terminal (upstream anthropics/claude-code#30447), so it needs
+    a PTY allocated in the foreground where launchd can still supervise it.
+    Note the BSD spelling, `script -q <file> <cmd>...`, which differs from
+    the GNU `script -qfc "<cmd>" <file>` the Linux unit uses.
+
+    PATH covers both Homebrew prefixes so this works on Apple Silicon and
+    Intel, and ~/.local/bin so the helpers install.sh puts there (moon,
+    askpass) are findable by anything Claude shells out to.
+  -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>
+      export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      export TERM=xterm-256color
+      cd "$HOME/Code" || exit 1
+      mkdir -p "$HOME/Library/Logs"
+      exec >>"$HOME/Library/Logs/claude-remote-control.log" 2&gt;&amp;1
+      exec script -q /dev/null claude remote-control \
+        --name "$(hostname -s)" \
+        --permission-mode bypassPermissions
+    </string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!--
+    Always-on by intent. launchd has no StartLimitBurst, so ThrottleInterval
+    is the only thing bounding a crash loop; 30s matches RestartSec on the
+    systemd side and is the floor launchd would impose anyway.
+  -->
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+</dict>
+</plist>

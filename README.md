@@ -50,10 +50,13 @@ Create an SSH key and add it to GitHub at https://github.com/settings/keys:
 
 ```bash
 ssh-keygen -t ed25519 -C "erick.yellott@gmail.com"
-echo "AddKeysToAgent yes" >> ~/.ssh/config
-echo "IdentityFile ~/.ssh/id_ed25519" >> ~/.ssh/config
 ssh-add
 ```
+
+`AddKeysToAgent` and `IdentityFile` no longer go in by hand: they live in
+`ssh/config`, which `install.sh` symlinks over `~/.ssh/config` (backing up
+anything already there). Cloning below works without it, since ssh tries
+`~/.ssh/id_ed25519` by default anyway.
 
 Clone the repo:
 
@@ -109,6 +112,29 @@ Still to do by hand
   ```bash
   atuin import auto
   ```
+
+- **Claude Code Remote Control** — lets the phone app start *new* sessions on
+  a machine. `remoteControlAtStartup` alone only exposes sessions a terminal is
+  already running; starting fresh ones needs a `claude remote-control` host
+  process alive full time. `install.sh` links the service but never loads it —
+  an always-on agent running with `--permission-mode bypassPermissions` is a
+  per-machine call, not a default. Turn it on with:
+
+  ```bash
+  # linux
+  systemctl --user enable --now claude-remote-control
+
+  # macos
+  launchctl bootstrap gui/$UID \
+    ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
+  ```
+
+  Homebrew is no help here: `claude-code` is a cask, casks cannot declare a
+  `service` block, and `brew services` only reads formulae — hence the plist.
+  On a laptop the Mac dropping off when it sleeps is expected; `caffeine` (in
+  `brew/Brewfile.macos`) is the lever for that. Logs are `journalctl --user -u
+  claude-remote-control` on Linux and `~/Library/Logs/claude-remote-control.log`
+  on macOS.
 
 - **Claude Code** — add to `~/.claude/settings.json`, which is not symlinked
   because it holds machine-specific hooks and plugin state:

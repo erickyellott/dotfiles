@@ -1,0 +1,25 @@
+# SSH client config, symlinked to ~/.ssh/config by install.sh. This replaces
+# the ~/.ssh/config the README used to have you write by hand.
+#
+# Specific hosts come first on purpose: ssh keeps the *first* value it sees for
+# each keyword, so a `Host *` block below can supply defaults but can never
+# override anything set above it. Put a new host under the wildcard and its
+# User will be silently ignored.
+#
+# Usernames differ per machine, which is the whole reason this file exists --
+# `ssh gengar.local` from shellder is qtbt, the reverse is yellott. Who is
+# *allowed* to log in where is ssh/authorized_keys; this file only says who to
+# log in as.
+#
+# butterfree is deliberately absent: I have not confirmed its short username,
+# and a wrong guess here fails more confusingly than no entry at all.
+
+Host gengar gengar.local
+  User qtbt
+
+Host shellder shellder.local
+  User yellott
+
+Host *
+  AddKeysToAgent yes
+  IdentityFile ~/.ssh/id_ed25519
