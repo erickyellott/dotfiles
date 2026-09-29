@@ -15,6 +15,12 @@
       After completing a phase, pause and let me review your work. 
     * After all phases are done, ask me if I want a walkthrough of the changes.
 * Don't write git commits.
+* When I do ask for a commit or PR description:
+    * Never attribute it to Claude (no `Co-Authored-By` or "Generated with"
+      lines).
+    * Body: 2 short sentences describing the change, then a bulleted list of
+      the highlights. Skip minor details; only call out ones that are
+      exceptional or high-impact.
 * Don't run tests unless instructed.
 * Never include or mention rollout or deployment sections in plans, unless we need to do a blue/green 
   or special case migration.
@@ -39,6 +45,10 @@
   `sudo` cannot prompt and fails; `-A` opens a GUI password prompt instead.
   Never run `$SUDO_ASKPASS` yourself — that would put my password in your
   transcript. This is not a pass on the rules above: still confirm first.
+* Before any long or compound shell command (loops, chained `&&`, pipes), give
+  me one plain-English sentence saying what it does and what it changes. Make
+  the tool's description say the same, calling out anything destructive. Prefer
+  a few small readable commands over one dense one-liner.
 
 ## Model delegation
 
