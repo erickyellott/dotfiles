@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Restarts com.erickyellott.claude-remote-control when claude is upgraded.
+  install.sh links this but does not load it.
+
+  Start: launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist
+  Stop:  launchctl bootout gui/$UID/com.erickyellott.claude-remote-control-restart
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.erickyellott.claude-remote-control-restart</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>
+      sleep 10
+      echo "$(date) claude changed, restarting remote-control" \
+        >>"$HOME/Library/Logs/claude-remote-control.log"
+      launchctl kickstart -k "gui/$(id -u)/com.erickyellott.claude-remote-control"
+    </string>
+  </array>
+
+  <key>WatchPaths</key>
+  <array>
+    <string>/opt/homebrew/bin/claude</string>
+    <string>/opt/homebrew/Caskroom/claude-code@latest</string>
+  </array>
+
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+</dict>
+</plist>

@@ -121,11 +121,18 @@ Still to do by hand
   ```bash
   # linux
   systemctl --user enable --now claude-remote-control
+  systemctl --user enable --now claude-remote-control-restart.path
 
   # macos
   launchctl bootstrap gui/$UID \
     ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
+  launchctl bootstrap gui/$UID \
+    ~/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist
   ```
+
+  The `-restart` units restart the server after `brew upgrade` (macOS) or
+  `mise upgrade` (Linux) replaces claude. Without them, new sessions fail with
+  "Remote Control didn't finish connecting".
 
   On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from
   dropping off when it sleeps. Logs are `journalctl --user -u

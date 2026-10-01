@@ -1,0 +1,9 @@
+[Unit]
+Description=Restart Claude Code Remote Control when claude is upgraded
+
+[Path]
+PathChanged=%h/.local/share/mise/installs/claude
+Unit=claude-remote-control-restart.service
+
+[Install]
+WantedBy=default.target

@@ -265,12 +265,23 @@ link_all() {
   if [[ "$OS" == macos ]]; then
     link launchd/com.erickyellott.claude-remote-control.plist \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
+    link launchd/com.erickyellott.claude-remote-control-restart.plist \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist"
     unlink_file "$HOME/.config/systemd/user/claude-remote-control.service"
+    unlink_file "$HOME/.config/systemd/user/claude-remote-control-restart.path"
+    unlink_file \
+      "$HOME/.config/systemd/user/claude-remote-control-restart.service"
   else
     link systemd/claude-remote-control.service \
       "$HOME/.config/systemd/user/claude-remote-control.service"
+    link systemd/claude-remote-control-restart.path \
+      "$HOME/.config/systemd/user/claude-remote-control-restart.path"
+    link systemd/claude-remote-control-restart.service \
+      "$HOME/.config/systemd/user/claude-remote-control-restart.service"
     unlink_file \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
+    unlink_file \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist"
   fi
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
