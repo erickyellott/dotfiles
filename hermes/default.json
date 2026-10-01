@@ -43,8 +43,8 @@
       "row" : 2
     },
     {
-      "app" : "Gemini",
-      "bundleId" : "com.google.GeminiMacOS",
+      "app" : "Claude",
+      "bundleId" : "com.anthropic.claudefordesktop",
       "column" : 4,
       "hotkey" : "alt+cmd+l",
       "row" : 2
