@@ -1,12 +1,17 @@
 # SSH client config, linked to ~/.ssh/config by install.sh.
 # Specific hosts must stay above `Host *` (ssh uses the first match).
-# TODO: add butterfree once its username is confirmed.
+
+Host butterfree butterfree.local
+  User qtbt
+  ForwardAgent yes
 
 Host gengar gengar.local
   User qtbt
+  ForwardAgent yes
 
 Host shellder shellder.local
   User yellott
+  ForwardAgent yes
 
 Host kanto kanto.local
   HostName kanto.erickyellott.com
