@@ -77,8 +77,8 @@ echo work > ~/.config/dotfiles/profile   # or: personal
 
 Absent, it defaults to `personal` (the committed config; the personal email
 lives in `git/gitconfig` directly). On `work` the script links
-`git/gitconfig.work` over it and adds the `fish/work/` files; switching back
-to `personal` removes both again.
+`git/gitconfig.work` over it and adds the `fish/work/` files; switching back to
+`personal` removes both again.
 
 Run it
 ====
@@ -90,9 +90,9 @@ cd ~/Code/dotfiles
 
 It installs Homebrew and the Brewfiles for the current platform, symlinks every
 config, makes fish the login shell, and builds the treesitter parsers. On macOS
-it also installs Hermes and sets a few system defaults. It is safe to
-re-run at any time — anything already correct is left alone, and anything real
-in the way is backed up to `<name>.bak.<timestamp>` first.
+it also installs Hermes and sets a few system defaults. It is safe to re-run at
+any time — anything already correct is left alone, and anything real in the way
+is backed up to `<name>.bak.<timestamp>` first.
 
 ```bash
 ./install.sh --dry-run      # print what would change, change nothing
@@ -112,32 +112,31 @@ Still to do by hand
   atuin import auto
   ```
 
-- **Claude Code Remote Control** — lets the phone app start *new* sessions on
-  a machine; needs a `claude remote-control` host process alive full time.
-  `install.sh` links the service but never loads it, since an always-on agent
-  with `--permission-mode bypassPermissions` is a per-machine call. Turn it on
-  with:
+- **Claude Code Remote Control** — lets the phone app start _new_ sessions on a
+  machine; needs a `claude remote-control` host process alive full time.
+  `install.sh` links and starts it on every machine (not with `--links-only`).
+  It runs with `--permission-mode bypassPermissions`. To turn it off on one
+  machine:
 
   ```bash
   # linux
-  systemctl --user enable --now claude-remote-control
-  systemctl --user enable --now claude-remote-control-restart.path
+  systemctl --user disable --now claude-remote-control
+  systemctl --user disable --now claude-remote-control-restart.path
 
   # macos
-  launchctl bootstrap gui/$UID \
-    ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
-  launchctl bootstrap gui/$UID \
-    ~/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist
+  launchctl bootout gui/$(id -u)/com.erickyellott.claude-remote-control
+  launchctl bootout gui/$(id -u)/com.erickyellott.claude-remote-control-restart
   ```
+
+  A re-run of `install.sh` starts it again.
 
   The `-restart` units restart the server after `brew upgrade` (macOS) or
   `mise upgrade` (Linux) replaces claude. Without them, new sessions fail with
   "Remote Control didn't finish connecting".
 
-  On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from
-  dropping off when it sleeps. Logs are `journalctl --user -u
-  claude-remote-control` on Linux and
-  `~/Library/Logs/claude-remote-control.log` on macOS.
+  On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from dropping
+  off when it sleeps. Logs are `journalctl --user -u claude-remote-control` on
+  Linux and `~/Library/Logs/claude-remote-control.log` on macOS.
 
 - **Claude Code** — add to `~/.claude/settings.json`, which is not symlinked
   because it holds machine-specific hooks and plugin state:
@@ -152,7 +151,7 @@ Still to do by hand
   }
   ```
 
-  The status line shows the model, directory, and a filling bar for context
-  and quota usage with the percentage printed inside it (green under 50%,
-  yellow to 80%, red above). API-key sessions have no quota, so they show
-  accrued cost instead.
+  The status line shows the model, directory, and a filling bar for context and
+  quota usage with the percentage printed inside it (green under 50%, yellow to
+  80%, red above). API-key sessions have no quota, so they show accrued cost
+  instead.

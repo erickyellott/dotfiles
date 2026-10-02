@@ -3,7 +3,7 @@
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Claude Code Remote Control server (lets the phone app start sessions here).
-  install.sh links this but does not load it.
+  install.sh links and loads this.
 
   Start: launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
   Stop:  launchctl bootout gui/$UID/com.erickyellott.claude-remote-control

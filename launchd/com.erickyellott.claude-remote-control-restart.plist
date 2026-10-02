@@ -3,7 +3,7 @@
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Restarts com.erickyellott.claude-remote-control when claude is upgraded.
-  install.sh links this but does not load it.
+  install.sh links and loads this.
 
   Start: launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist
   Stop:  launchctl bootout gui/$UID/com.erickyellott.claude-remote-control-restart

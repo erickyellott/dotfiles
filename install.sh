@@ -258,10 +258,7 @@ link_all() {
   # Outbound SSH: usernames differ per machine.
   link ssh/config "$HOME/.ssh/config"
 
-  # Linked, not started. Enable per machine with:
-  #   linux  systemctl --user enable --now claude-remote-control
-  #   macos  launchctl bootstrap gui/$UID \
-  #            ~/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist
+  # Started later by enable_remote_control.
   if [[ "$OS" == macos ]]; then
     link launchd/com.erickyellott.claude-remote-control.plist \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
@@ -631,6 +628,45 @@ configure_claude() {
   changed "claude settings -> $settings"
 }
 
+# ---------------------------------------------------------- remote control ---
+
+# After configure_claude: remoteControlAtStartup keeps the server from waiting
+# on the "Enable Remote Control?" prompt.
+enable_remote_control() {
+  phase "Claude Remote Control"
+
+  if [[ "$OS" == macos ]]; then
+    local domain="gui/$(id -u)" label
+    for label in com.erickyellott.claude-remote-control \
+      com.erickyellott.claude-remote-control-restart; do
+      if launchctl print "$domain/$label" >/dev/null 2>&1; then
+        ok "$label loaded"
+      else
+        run launchctl bootstrap "$domain" "$HOME/Library/LaunchAgents/$label.plist"
+        changed "loaded $label"
+      fi
+    done
+    return
+  fi
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    warn "systemctl unavailable; skipping"
+    return
+  fi
+
+  run systemctl --user daemon-reload
+  local unit
+  for unit in claude-remote-control.service claude-remote-control-restart.path; do
+    if systemctl --user is-enabled --quiet "$unit" 2>/dev/null &&
+      systemctl --user is-active --quiet "$unit" 2>/dev/null; then
+      ok "$unit enabled"
+    else
+      run systemctl --user enable --now "$unit"
+      changed "enabled $unit"
+    fi
+  done
+}
+
 print_manual() {
   phase "Still to do by hand"
   cat <<'MANUAL'
@@ -681,6 +717,7 @@ main() {
     fi
     install_parsers
     configure_claude
+    enable_remote_control
     print_manual
   fi
 
