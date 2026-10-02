@@ -8,6 +8,11 @@ Host gengar gengar.local
 Host shellder shellder.local
   User yellott
 
+Host kanto kanto.local
+  HostName kanto.erickyellott.com
+  User qtbt
+  ForwardAgent yes
+
 Host *
   AddKeysToAgent yes
   IdentityFile ~/.ssh/id_ed25519
