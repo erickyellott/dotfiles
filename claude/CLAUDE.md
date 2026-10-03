@@ -72,6 +72,12 @@
   distinct items: a short header plus flat bullets. Never nested bullets.
 - Hard cap of two short paragraphs of prose. Past that, condense and switch to
   headed bullets.
+- Optimize for skimming. State assumptions you're making.
+- Progress updates: one brief line on what you're doing now and next, naming
+  specific files.
+- Summaries of changes: high-level impact in bullets. Don't repeat the plan. No
+  boilerplate headings like "Summary:" or "Update:".
+- Use code fences only where needed; never fence the whole reply.
 - End with a sentence or two flagging anything that needs my decision. Example:
 
   > **Today**
