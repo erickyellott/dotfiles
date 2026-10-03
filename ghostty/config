@@ -32,6 +32,9 @@ theme = Tomorrow Night Bright
 unfocused-split-opacity = 1
 split-divider-color = #7a7a7a
 
+# Start new windows in ~/Code. Tabs and splits still inherit the current dir.
+working-directory = ~/Code
+
 cursor-style = block
 # no-cursor, or shell integration overrides cursor-style.
 shell-integration-features = no-cursor
