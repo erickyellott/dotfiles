@@ -65,8 +65,21 @@ if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
     local reset_at reset_epoch left
     reset_at=$(echo "$input" | jq -r ".rate_limits.$1.resets_at // empty")
     [ -z "$reset_at" ] && return
-    [[ "$reset_at" =~ ^[0-9]+$ ]] && reset_at="@$reset_at"
-    reset_epoch=$(date -d "$reset_at" +%s 2>/dev/null) || return
+    if [[ "$reset_at" =~ ^[0-9]+$ ]]; then
+      reset_epoch=$reset_at
+    else
+      # Parsed in jq rather than date(1): GNU date -d doesn't exist on macOS. Handles fractional secs and any UTC offset.
+      reset_epoch=$(jq -rn --arg t "$reset_at" '
+        $t | sub("\\.[0-9]+"; "")
+        | capture("^(?<dt>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})(?<tz>Z|[+-]\\d{2}:?\\d{2})?$")
+        | (.tz // "Z" | gsub(":"; "")) as $tz
+        | (.dt + "Z" | fromdateiso8601)
+          - (if $tz == "Z" then 0
+             else ($tz[1:3] | tonumber) * 3600 + ($tz[3:5] | tonumber) * 60
+                  | if $tz[0:1] == "-" then -. else . end
+             end)' 2>/dev/null)
+      [[ "$reset_epoch" =~ ^[0-9]+$ ]] || return
+    fi
     left=$(( reset_epoch - $(date +%s) ))
     [ "$left" -lt 0 ] && left=0
     if [ "$left" -ge 86400 ]; then
