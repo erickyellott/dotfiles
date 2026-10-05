@@ -22,7 +22,14 @@ What this sets up
 - **Neovim + Neovide** — AstroNvim-based config, macOS-style Cmd/Option
   keybindings, treesitter parsers prebuilt
 - **Zed** — settings and keymap
-- **Claude Code** — global instructions, theme, status line
+- **Claude Code** — global instructions, settings, theme, status line.
+  `~/.claude/settings.json` is a symlink, so `/config` and permission
+  changes land in this repo.
+
+  The status line shows the model, directory, and a filling bar for context and
+  quota usage with the percentage printed inside it (green under 50%, yellow to
+  80%, red above). API-key sessions have no quota, so they show accrued cost
+  instead.
 - **Hermes** — window manager, installed from its GitHub releases
 - **k9s**, **git** — views, gitconfig, global gitignore
 
@@ -137,21 +144,3 @@ Still to do by hand
   On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from dropping
   off when it sleeps. Logs are `journalctl --user -u claude-remote-control` on
   Linux and `~/Library/Logs/claude-remote-control.log` on macOS.
-
-- **Claude Code** — add to `~/.claude/settings.json`, which is not symlinked
-  because it holds machine-specific hooks and plugin state:
-
-  ```json
-  {
-    "theme": "custom:tomorrow-night-bright",
-    "statusLine": {
-      "type": "command",
-      "command": "bash ~/.claude/statusline-command.sh"
-    }
-  }
-  ```
-
-  The status line shows the model, directory, and a filling bar for context and
-  quota usage with the percentage printed inside it (green under 50%, yellow to
-  80%, red above). API-key sessions have no quota, so they show accrued cost
-  instead.

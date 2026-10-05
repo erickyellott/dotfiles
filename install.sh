@@ -310,6 +310,7 @@ link_all() {
   link claude/tomorrow-night-bright.json \
     "$HOME/.claude/themes/tomorrow-night-bright.json"
   link claude/statusline-command.sh "$HOME/.claude/statusline-command.sh"
+  link claude/settings.json "$HOME/.claude/settings.json"
 
   if [[ "$OS" == linux ]]; then
     link cosmic/shortcuts \
@@ -568,70 +569,10 @@ install_parsers() {
 
 # ----------------------------------------------------------------- manual ---
 
-# ------------------------------------------------------------------ claude ---
-
-# settings.json is not symlinked: it also holds machine-specific hooks and
-# plugin state that must not travel with the repo. So merge in just the two
-# keys this repo owns and leave every other key alone.
-configure_claude() {
-  phase "Claude settings"
-
-  local settings="$HOME/.claude/settings.json"
-  local theme="custom:tomorrow-night-bright"
-  local cmd="bash ~/.claude/statusline-command.sh"
-
-  if ! command -v jq >/dev/null 2>&1; then
-    warn "jq unavailable; set theme, statusLine and remoteControlAtStartup by hand"
-    return
-  fi
-
-  if [[ -e "$settings" ]] && ! jq -e . "$settings" >/dev/null 2>&1; then
-    warn "$settings is not valid JSON; left alone"
-    return
-  fi
-
-  local current=""
-  [[ -f "$settings" ]] && current="$(cat "$settings")"
-  [[ -n "$current" ]] || current='{}'
-
-  local merged
-  # remoteControlAtStartup also spares the systemd unit from answering the
-  # "Enable Remote Control?" prompt on stdin.
-  merged="$(printf '%s' "$current" | jq --arg theme "$theme" --arg cmd "$cmd" \
-    '.theme = $theme
-     | .statusLine = { type: "command", command: $cmd }
-     | .remoteControlAtStartup = true')" || {
-    warn "could not merge $settings; left alone"
-    return
-  }
-
-  if [[ "$(printf '%s' "$current" | jq -S .)" == "$(printf '%s' "$merged" | jq -S .)" ]]; then
-    ok "claude settings already set"
-    return
-  fi
-
-  if $DRY_RUN; then
-    printf '    %swould run:%s merge theme and statusLine into %s\n' \
-      "$DIM" "$RESET" "$settings"
-    CHANGES=$((CHANGES + 1))
-    return
-  fi
-
-  # cp, not the mv the link helper uses: this file is edited in place, so the
-  # original has to stay where it is.
-  if [[ -f "$settings" ]]; then
-    cp "$settings" "$settings.bak.$STAMP"
-    warn "backed up $settings -> $(basename "$settings").bak.$STAMP"
-  fi
-  mkdir -p "$(dirname "$settings")"
-  printf '%s\n' "$merged" >"$settings"
-  changed "claude settings -> $settings"
-}
-
 # ---------------------------------------------------------- remote control ---
 
-# After configure_claude: remoteControlAtStartup keeps the server from waiting
-# on the "Enable Remote Control?" prompt.
+# After link_all: remoteControlAtStartup in claude/settings.json keeps the
+# server from waiting on the "Enable Remote Control?" prompt.
 enable_remote_control() {
   phase "Claude Remote Control"
 
@@ -716,7 +657,6 @@ main() {
       macos_defaults
     fi
     install_parsers
-    configure_claude
     enable_remote_control
     print_manual
   fi

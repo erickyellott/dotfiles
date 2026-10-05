@@ -90,3 +90,11 @@
   > of the fourth quarter.
 
 - When writing md files, linewrap at 80.
+
+## Claude Code settings
+
+- `~/.claude/settings.json` is a symlink to
+  `~/Code/dotfiles/claude/settings.json` (installed by `install.sh`). Edit it
+  in place through the symlink; never replace it with a regular file. Changes
+  there are shared across machines, so keep machine-specific paths, hooks, and
+  permission rules in `~/.claude/settings.local.json` instead.
