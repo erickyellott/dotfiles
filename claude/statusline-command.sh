@@ -59,9 +59,26 @@ five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty'
 seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 
 if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
+  # Countdown to a window's reset, e.g. " ↻2d4h" or " ↻3h12m". resets_at may be epoch seconds or ISO 8601.
+  # Prints nothing if the field is missing or unparseable.
+  reset_in() {
+    local reset_at reset_epoch left
+    reset_at=$(echo "$input" | jq -r ".rate_limits.$1.resets_at // empty")
+    [ -z "$reset_at" ] && return
+    [[ "$reset_at" =~ ^[0-9]+$ ]] && reset_at="@$reset_at"
+    reset_epoch=$(date -d "$reset_at" +%s 2>/dev/null) || return
+    left=$(( reset_epoch - $(date +%s) ))
+    [ "$left" -lt 0 ] && left=0
+    if [ "$left" -ge 86400 ]; then
+      printf ' ↻%dd%dh' $(( left / 86400 )) $(( left % 86400 / 3600 ))
+    else
+      printf ' ↻%dh%dm' $(( left / 3600 )) $(( left % 3600 / 60 ))
+    fi
+  }
+
   extra=""
-  [ -n "$five_h" ] && extra=$(meter "5h" "$five_h" "$LABEL_QUOTA" "$FILL_QUOTA")
-  [ -n "$seven_d" ] && extra="${extra:+$extra  }$(meter "7d" "$seven_d" "$LABEL_QUOTA" "$FILL_QUOTA")"
+  [ -n "$five_h" ] && extra="$(meter "5h" "$five_h" "$LABEL_QUOTA" "$FILL_QUOTA")$(reset_in five_hour)"
+  [ -n "$seven_d" ] && extra="${extra:+$extra  }$(meter "7d" "$seven_d" "$LABEL_QUOTA" "$FILL_QUOTA")$(reset_in seven_day)"
 else
   cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
   extra=$(printf '$%.2f' "${cost:-0}")
