@@ -21,8 +21,8 @@
   - Never attribute it to Claude (no `Co-Authored-By` or "Generated with"
     lines).
   - Body: 2 short sentences describing the change, then a bulleted list of the
-    highlights. Skip minor details; only call out ones that are exceptional or
-    high-impact.
+    highlights, using `*` bullets (not `-`). Skip minor details; only call out
+    ones that are exceptional or high-impact.
 - Don't run tests unless instructed.
 - Never include or mention rollout or deployment sections in plans, unless we
   need to do a blue/green or special case migration.
