@@ -264,6 +264,8 @@ link_all() {
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
     link launchd/com.erickyellott.claude-remote-control-restart.plist \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist"
+    link launchd/com.erickyellott.claude-remote-control-logrotate.plist \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-logrotate.plist"
     unlink_file "$HOME/.config/systemd/user/claude-remote-control.service"
     unlink_file "$HOME/.config/systemd/user/claude-remote-control-restart.path"
     unlink_file \
@@ -279,6 +281,8 @@ link_all() {
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control.plist"
     unlink_file \
       "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-restart.plist"
+    unlink_file \
+      "$HOME/Library/LaunchAgents/com.erickyellott.claude-remote-control-logrotate.plist"
   fi
 
   link atuin/config.toml "$HOME/.config/atuin/config.toml"
@@ -579,7 +583,8 @@ enable_remote_control() {
   if [[ "$OS" == macos ]]; then
     local domain="gui/$(id -u)" label
     for label in com.erickyellott.claude-remote-control \
-      com.erickyellott.claude-remote-control-restart; do
+      com.erickyellott.claude-remote-control-restart \
+      com.erickyellott.claude-remote-control-logrotate; do
       if launchctl print "$domain/$label" >/dev/null 2>&1; then
         ok "$label loaded"
       else

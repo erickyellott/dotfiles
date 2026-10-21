@@ -133,6 +133,7 @@ Still to do by hand
   # macos
   launchctl bootout gui/$(id -u)/com.erickyellott.claude-remote-control
   launchctl bootout gui/$(id -u)/com.erickyellott.claude-remote-control-restart
+  launchctl bootout gui/$(id -u)/com.erickyellott.claude-remote-control-logrotate
   ```
 
   A re-run of `install.sh` starts it again.
@@ -143,4 +144,5 @@ Still to do by hand
 
   On a laptop, `caffeine` (in `brew/Brewfile.macos`) keeps the Mac from dropping
   off when it sleeps. Logs are `journalctl --user -u claude-remote-control` on
-  Linux and `~/Library/Logs/claude-remote-control.log` on macOS.
+  Linux and `~/Library/Logs/claude-remote-control.log` on macOS, where the
+  `-logrotate` agent rotates it hourly past 10 MB and keeps one old copy.
