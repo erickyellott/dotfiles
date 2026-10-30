@@ -42,6 +42,9 @@ shell-integration-features = no-cursor
 # Close tabs/windows without the "a process is still running" prompt.
 confirm-close-surface = false
 
+# Paste multi-line text without the "may be dangerous" prompt.
+clipboard-paste-protection = false
+
 # cmd+W closes the focused split, not the whole tab.
 keybind = ctrl+shift+w=close_surface
 
